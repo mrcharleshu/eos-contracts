@@ -1,0 +1,28 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+*.log
+*.class
+out/
+logs/
+deploy/temp*
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### Subprojects ###
+pi-admin/bin/
+pi-common/bin/
+pi-data-provider/bin/
+pi-domain/bin/
+pi-engine/bin/
+pi-maintenance/bin/
+pi-process/bin/
+pi-producer/bin/
+pi-web/bin/
+
+### Mac ###
+.DS_Store
