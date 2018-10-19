@@ -10,6 +10,7 @@ public:
     // @abi table subscription i64
     struct subscription {
         uint64_t sid;            // 订阅ID(multi_index生成)
+        uint64_t ctime;          // 订阅时间
         account_name subscriber; // 买方
         account_name publisher;  // 卖方
         std::string content;     // 契约的dataHash
@@ -22,7 +23,7 @@ public:
 
         uint64_t get_by_end_time() const { return end_time; }
 
-        EOSLIB_SERIALIZE(subscription, (sid)(subscriber)(publisher)(content)(start_time)(end_time))
+        EOSLIB_SERIALIZE(subscription, (sid)(ctime)(subscriber)(publisher)(content)(start_time)(end_time))
     };
 
     typedef multi_index<
@@ -54,6 +55,7 @@ public:
         subscription_table subtbl(_self, _self); // code, scope
         subtbl.emplace(subscriber, [&](auto &new_subscription) {
             new_subscription.sid = subtbl.available_primary_key();
+            new_subscription.ctime = current_time();
             new_subscription.subscriber = subscriber;
             new_subscription.publisher = publisher;
             new_subscription.content = content;
@@ -61,12 +63,17 @@ public:
             new_subscription.end_time = end_time;
         });
 
-        print("subscription subscribed. \n",
-                     "- subscriber: ", subscriber, "\n",
-                     "- publisher: ", publisher, "\n",
-                     "- content: ", content, "\n",
-                     "- start_time: ", start_time, "\n",
-                     "- end_time: ", end_time);
+        action(
+                permission_level{publisher, N(active)},
+                N(eosio.token),
+                N(transfer),
+                std::make_tuple(publisher, subscriber, asset(10000),
+                        std::string("transfer 1.0000 SYS from publisher to subscriber"))
+        ).send();
+
+        print("subscription subscribed >>", " subscriber: ", name{subscriber},
+                " publisher: ", name{publisher}, " content: ", content,
+                " start_time: ", start_time, " end_time: ", end_time);
     }
 
     // @abi action
@@ -98,9 +105,28 @@ public:
     void listbyst() {
         subscription_table subtbl(_self, _self); // code, scope
         auto idx = subtbl.get_index<N(start_time)>();
-        print("LIST BY start_time subscription by start_time index (rbegin -> rend)\n");
+        print("Items sorted by start_time: [ASC]\n");
+        for( const auto& item : idx ) {
+            print("sid=", item.sid, ", ctime=", item.ctime,
+                  ", subscriber=", name{item.subscriber}, ", publisher=", name{item.publisher},
+                  ", start_time=", item.start_time, ", end_time=", item.end_time, "\n");
+        }
+        print("Items sorted by start_time: [DESC]\n");
         for (auto item = idx.rbegin(); item != idx.rend(); item++) {
-            print("- time: ", item->start_time, ", subscriber: ", item->subscriber, "\n");
+            print("sid=", item->sid, ", ctime=", item->ctime,
+                  ", subscriber=", name{item->subscriber}, ", publisher=", name{item->publisher},
+                  ", start_time=", item->start_time, ", end_time=", item->end_time, "\n");
+        }
+    }
+
+    void listbyet() {
+        subscription_table subtbl(_self, _self); // code, scope
+        auto idx = subtbl.get_index<N(end_time)>();
+        print("Items sorted by end_time: [ASC]\n");
+        for( const auto& item : idx ) {
+            print("sid=", item.sid, ", ctime=", item.ctime,
+                  ", subscriber=", name{item.subscriber}, ", publisher=", name{item.publisher},
+                  ", start_time=", item.start_time, ", end_time=", item.end_time, "\n");
         }
     }
 
@@ -122,6 +148,7 @@ public:
         require_recipient(publisher);
 
         print("subscription accesslog \n",
+                     "- current_time:: ", current_time(), "\n",
                      "- subscriber: ", subscriber, "\n",
                      "- publisher: ", publisher, "\n",
                      "- timestamp: ", timestamp, "\n",
@@ -129,4 +156,4 @@ public:
     }
 };
 
-EOSIO_ABI(subscriptions, (subscribe)(deletebysid)(deletetable)(accesslog))
+EOSIO_ABI(subscriptions, (subscribe)(deletebysid)(deletetable)(listbyst)(listbyet)(accesslog))
