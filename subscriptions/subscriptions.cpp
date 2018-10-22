@@ -1,6 +1,8 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/print.hpp>
 #include <eosiolib/asset.hpp>
+#include <eosio.token/eosio.token.hpp>
+
 using namespace eosio;
 
 class subscriptions : public eosio::contract {
@@ -62,6 +64,12 @@ public:
             new_subscription.start_time = start_time;
             new_subscription.end_time = end_time;
         });
+
+        // print("symbol = ", eosio::symbol_type(CORE_SYMBOL), "\n");
+        // auto system_token_supply = eosio::token(N(eosio.token)).get_supply(eosio::symbol_type(CORE_SYMBOL).name()).amount;
+        auto user_balance = eosio::token(N(eosio.token)).get_balance(
+                publisher, eosio::symbol_type(CORE_SYMBOL).name()).amount;
+        print("user_balance = ", user_balance, "\n");
 
         action(
                 permission_level{publisher, N(active)},

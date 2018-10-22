@@ -19,6 +19,7 @@ cleos get table subscription subscription subscription
 cleos get actions useraaaaaaaa
 ```
 
+### 设置权限eosio.code
 ```
 # useraaaaaaaa
 cleos set account permission useraaaaaaaa active '{"threshold": 1,"keys": [{"key": "EOS69X3383RzBZj41k73CSjUNXM5MYGpnDxyPnWUKPEtYQmTBWz4D","weight": 1}],"accounts": [{"permission":{"actor":"subscription","permission":"eosio.code"},"weight":1}]}' owner -p useraaaaaaaa
