@@ -1,6 +1,8 @@
 build/
-*.log
 cmake-build-debug/
+*.log
+*.plist
+*.out
 
 ### IntelliJ IDEA ###
 .idea
