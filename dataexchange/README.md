@@ -9,6 +9,7 @@ cleos system newaccount producer111a pidatacenter EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 
 cleos set contract pidatacenter ../dataexchange/ -p pidatacenter@active
 cleos push action pidatacenter addmaterial '["人造板", 3, "新泽兴", "1", "素板", "1.3"]' -p pidatacenter@active
+cleos push action pidatacenter modmaterial '["人造板", 3, "新泽兴AAA", "1", "毛板", "23.2342351325"]' -p pidatacenter@active
 cleos push action pidatacenter delmaterial '[1]' -p pidatacenter@active
 cleos push action pidatacenter delmaterials '' -p pidatacenter@active
 cleos push action pidatacenter subscribe '["useraaaaaaab", "useraaaaaaac", ["1"], 1535660000, 1535720000]' -p useraaaaaaab@active

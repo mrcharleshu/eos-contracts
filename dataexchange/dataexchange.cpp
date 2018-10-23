@@ -37,6 +37,40 @@ public:
               " unit_price: ", unit_price);
     }
 
+    void modmaterial(std::string &industry,
+                     uint64_t company_id,
+                     std::string &company_name,
+                     std::string &material_id,
+                     std::string &material_name,
+                     double unit_price) {
+        require_auth(_self);
+
+        material_table tbl(_self, _self); // code, scope
+        auto exist_material = tbl.end();
+        for (auto item = tbl.begin(); item != tbl.end(); item++) {
+            print("material: gid=", item->gid, ", material_id=", item->material_id, "\n");
+            if (item->company_id == company_id && item->material_id == material_id) {
+                exist_material = item;
+                break;
+            }
+        }
+        // auto exist_material = tbl.find(gid);
+        eosio_assert(exist_material != tbl.end(), "the material does not exist");
+        // print("exist_material = ", &exist_material);
+
+        tbl.modify(exist_material, _self, [&](auto &modifiable_material) {
+            modifiable_material.industry = industry;
+            modifiable_material.company_id = company_id;
+            modifiable_material.company_name = company_name;
+            modifiable_material.material_id = material_id;
+            modifiable_material.material_name = material_name;
+            // FIXME 单位小数点精度错误
+            modifiable_material.unit_price = unit_price;
+        });
+
+        eosio::print("modify material success \n");
+    }
+
     // @abi action
     void delmaterial(uint64_t gid) {
         require_auth(_self);
@@ -208,4 +242,4 @@ private:
 
 };
 
-EOSIO_ABI(dataexchange, (addmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))
+EOSIO_ABI(dataexchange, (addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))
