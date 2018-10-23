@@ -15,7 +15,7 @@ public:
     void addmaterial(std::string &industry,
                      uint64_t company_id,
                      std::string &company_name,
-                     uint64_t material_id,
+                     std::string &material_id,
                      std::string &material_name,
                      double unit_price) {
         require_auth(_self);
@@ -40,49 +40,55 @@ public:
     // @abi action
     void delmaterial(uint64_t gid) {
         require_auth(_self);
-
         material_table tbl(_self, _self); // code, scope
         const auto &record = tbl.get(gid);
-
         print("delmaterial. \t gid : ", gid);
     }
 
     // @abi action
     void delmaterials() {
         require_auth(_self);
-
         material_table tbl(_self, _self); // code, scope
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             itr = tbl.erase(itr);
         }
-
         print("delmaterials deletetable.");
     }
 
-    inline bool get_by_material_id(uint64_t material_id) const {
+    inline bool exist_by_material_id(string &material_id) const {
         material_table tbl(_self, _self); // code, scope
-        print("get_by_material_id: material_id = ", material_id, "\n");
-        bool matched = false;
+        print("exist_by_material_id: ", material_id, "\n");
+        bool exist = false;
         for (auto item = tbl.begin(); item != tbl.end(); item++) {
-            print("material: gid=", item->gid, ", material_id= ", item->material_id, "\n");
+            print("material: gid=", item->gid, ", material_id=", item->material_id, "\n");
             if (item->material_id == material_id) {
-                matched = true;
+                exist = true;
                 break;
             }
         }
-        // auto match = tbl.find(material_id);
-        // return match != tbl.end();
-        return matched;
+        return exist;
+    }
+
+    inline bool exist_by_material_ids(vector <string> &material_ids) const {
+        print("exist_by_material_ids: size = ", material_ids.size(), "\n");
+        const auto contract = dataexchange(_self);
+        bool exist = true;
+        for (int i = 0; i < material_ids.size(); i++) {
+            exist = exist && contract.exist_by_material_id(material_ids[i]);
+            if (!exist) {
+                print("material_id: ", material_ids[i], " doesn't exist\n");
+            }
+        }
+        return exist;
     }
 
     // @abi action
     void subscribe(account_name subscriber,
                    account_name publisher,
-                   int[] material_ids,
+                   vector <string> &material_ids,
                    uint64_t start_time,
                    uint64_t end_time) {
-        // print( "\tsubscriber=", subscriber, "\tname=", name{subscriber}, "\tN=", N(subscriber),
-        //         "\tpublisher=", publisher, "\tname=", name{publisher}, "\tN=", N(publisher), "\t");
+        print("material_ids = ", material_ids.size());
 
         eosio_assert(subscriber != publisher, "cannot subscribe to self");
         require_auth(subscriber);
@@ -90,27 +96,20 @@ public:
         eosio_assert(is_account(subscriber), "subscriber account does not exist");
         eosio_assert(is_account(publisher), "publisher account does not exist");
 
-        const bool exist = dataexchange(_self).get_by_material_id(material_id);
+        const bool exist = dataexchange(_self).exist_by_material_ids(material_ids);
         print("is material exist : ", exist, "\n");
-        eosio_assert(exist != 0, "material_id doesn't exist");
+        eosio_assert(exist != 0, "material_ids doesn't exist");
 
         require_recipient(subscriber);
         require_recipient(publisher);
 
-        vector <uint64_t> mids;//创建一个向量存储容器 int
-        for (i = 0; i < sizeof(material_ids); ++i) {
-            mids.push_back(i);
-        }
-        print("mids = ", mids);
-
-        // subscription_table subtbl(_self, subscriber); // code, scope
         subscription_table subtbl(_self, _self); // code, scope
         subtbl.emplace(subscriber, [&](auto &new_subscription) {
             new_subscription.gid = subtbl.available_primary_key();
             new_subscription.ctime = current_time();
             new_subscription.subscriber = subscriber;
             new_subscription.publisher = publisher;
-            new_subscription.material_ids = mids;
+            new_subscription.material_ids = material_ids;
             new_subscription.start_time = start_time;
             new_subscription.end_time = end_time;
         });
@@ -124,7 +123,7 @@ public:
         ).send();
 
         print("subscription subscribed >>", " subscriber: ", name{subscriber},
-              " publisher: ", name{publisher}, " material_id: ", material_id,
+              " publisher: ", name{publisher}, " material_ids: ", material_ids.size(),
               " start_time: ", start_time, " end_time: ", end_time);
     }
 
@@ -161,14 +160,14 @@ private:
         std::string industry;      // 行业
         uint64_t company_id;       // 公司ID
         std::string company_name;  // 公司名
-        uint64_t material_id;      // 原料ID
+        std::string material_id;   // 原料ID
         std::string material_name; // 原料名
         double unit_price;         // 单价
 
         uint64_t primary_key() const { return gid; }
 
         // uint64_t get_by_company_id() const { return company_id; }
-        // uint64_t get_by_material_id() const { return material_id; }
+        // std::string get_by_material_id() const { return material_id; }
 
         EOSLIB_SERIALIZE(material,
         (gid)(industry)(company_id)(company_name)(material_id)(material_name)(unit_price)
@@ -177,13 +176,13 @@ private:
 
     // @abi table subscription i64
     struct subscription {
-        uint64_t gid;                  // 订阅ID(multi_index生成)
-        uint64_t ctime;                // 订阅时间
-        account_name subscriber;       // 买方
-        account_name publisher;        // 卖方
-        vector <uint64_t> material_ids; // 原材料ID
-        uint64_t start_time;           // 订阅有效开始时间
-        uint64_t end_time;             // 订阅有效结束时间
+        uint64_t gid;                   // 订阅ID(multi_index生成)
+        uint64_t ctime;                 // 订阅时间
+        account_name subscriber;        // 买方
+        account_name publisher;         // 卖方
+        vector <string> material_ids;   // 原材料ID
+        uint64_t start_time;            // 订阅有效开始时间
+        uint64_t end_time;              // 订阅有效结束时间
 
         uint64_t primary_key() const { return gid; }
 
@@ -198,7 +197,7 @@ private:
 
     typedef multi_index<N(material), material> material_table;
     // indexed_by < N(company_id), const_mem_fun < material, uint64_t, &material::get_by_company_id>>,
-    // indexed_by<N(material_id), const_mem_fun < material, uint64_t, &material::get_by_material_id>>>
+    // indexed_by<N(material_id), const_mem_fun < material, std::string, &material::get_by_material_id>>>
 
     typedef multi_index<
             N(subscription),
@@ -209,7 +208,4 @@ private:
 
 };
 
-// EOSIO_ABI(dataexchange, (accesslog))
-EOSIO_ABI(dataexchange, (addmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)
-(delsubs))
-// EOSIO_ABI(dataexchange, (accesslog))
+EOSIO_ABI(dataexchange, (addmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))
