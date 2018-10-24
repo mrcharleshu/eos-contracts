@@ -8,14 +8,15 @@ cleos system newaccount producer111a pidatacenter EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 # cleos system delegatebw producer111a pidatacenter "10.0000 SYS" "10.0000 SYS"
 
 cleos set contract pidatacenter ../dataexchange/ -p pidatacenter@active
-cleos push action pidatacenter addmaterial '["人造板", 3, "新泽兴", "1", "素板", "1.3"]' -p pidatacenter@active
-cleos push action pidatacenter modmaterial '["人造板", 3, "新泽兴AAA", "1", "毛板", "23.2342351325"]' -p pidatacenter@active
-cleos push action pidatacenter delmaterial '[1]' -p pidatacenter@active
-cleos push action pidatacenter delmaterials '' -p pidatacenter@active
-cleos push action pidatacenter subscribe '["useraaaaaaab", "useraaaaaaac", ["1"], 1535660000, 1535720000]' -p useraaaaaaab@active
+cleos push action pidatacenter addmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-glue-consumption", "胶耗", 1.0012, 1000]' -p useraaaaaaac@active
+cleos push action pidatacenter addmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-emulsion", "乳胶", 1.3123, 1000]' -p useraaaaaaac@active
+cleos push action pidatacenter modmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-glue-consumption", "胶耗", 0.2342, 900]' -p useraaaaaaac@active
+cleos push action pidatacenter delmaterial '["useraaaaaaac", 1]' -p useraaaaaaac@active
+cleos push action pidatacenter delmaterials '["useraaaaaaac"]' -p useraaaaaaac@active
+cleos push action pidatacenter subscribe '["useraaaaaaab", "useraaaaaaac", ["5886-glue-consumption", "5886-emulsion"], 1540362608, 1551363608]' -p useraaaaaaab@active
 cleos push action pidatacenter delsub '[1]' -p useraaaaaaab@active
 cleos push action pidatacenter delsubs '' -p pidatacenter@active
-cleos get table pidatacenter pidatacenter material
+cleos get table pidatacenter useraaaaaaac material
 cleos get table pidatacenter pidatacenter subscription
 ```
 

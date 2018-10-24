@@ -1,18 +1,25 @@
+#include <cmath>
 #include "dataexchange.hpp"
+#include "utils.hpp"
 
 namespace eosio {
 
     // @abi action
-    void dataexchange::addmaterial(std::string &industry,
+    void dataexchange::addmaterial(account_name publisher,
+                                   std::string &industry,
                                    uint64_t company_id,
                                    std::string &company_name,
                                    std::string &material_id,
                                    std::string &material_name,
-                                   double unit_price) {
-        require_auth(_self);
-        material_table tbl(_self, _self); // code, scope
-        tbl.emplace(_self, [&](auto &new_material) {
+                                   double unit_price,
+                                   uint64_t safe_inventory) {
+        require_auth(publisher);
+        eosio_assert(is_account(publisher), "publisher account does not exist");
+
+        material_table tbl(_self, publisher); // code, scope
+        tbl.emplace(publisher, [&](auto &new_material) {
             new_material.gid = tbl.available_primary_key();
+            new_material.publisher = publisher;
             new_material.industry = industry;
             new_material.company_id = company_id;
             new_material.company_name = company_name;
@@ -20,6 +27,7 @@ namespace eosio {
             new_material.material_name = material_name;
             // FIXME 单位小数点精度错误
             new_material.unit_price = unit_price;
+            new_material.safe_inventory = safe_inventory;
         });
 
         print("materials create>> ", " industry: ", industry,
@@ -28,26 +36,30 @@ namespace eosio {
               " unit_price: ", unit_price);
     }
 
-    void dataexchange::modmaterial(std::string &industry,
+    void dataexchange::modmaterial(account_name publisher,
+                                   std::string &industry,
                                    uint64_t company_id,
                                    std::string &company_name,
                                    std::string &material_id,
                                    std::string &material_name,
-                                   double unit_price) {
-        require_auth(_self);
+                                   double unit_price,
+                                   uint64_t safe_inventory) {
+        require_auth(publisher);
+        eosio_assert(is_account(publisher), "publisher account does not exist");
 
-        material_table tbl(_self, _self); // code, scope
+        material_table tbl(_self, publisher); // code, scope
         auto exist_material = tbl.end();
-        for (auto item = tbl.begin(); item != tbl.end(); item++) {
-            print("material: gid=", item->gid, ", material_id=", item->material_id, "\n");
-            if (item->company_id == company_id && item->material_id == material_id) {
-                exist_material = item;
+        for (auto itr = tbl.begin(); itr != tbl.end();) {
+            print("material: gid=", itr->gid, ",industry=", itr->industry, ", material_id=", itr->material_id, "\n");
+            if (itr->company_id == company_id && itr->material_id == material_id) {
+                exist_material = itr;
                 break;
             }
+            itr++;
         }
         eosio_assert(exist_material != tbl.end(), "the material does not exist");
 
-        tbl.modify(exist_material, _self, [&](auto &modifiable_material) {
+        tbl.modify(exist_material, publisher, [&](auto &modifiable_material) {
             modifiable_material.industry = industry;
             modifiable_material.company_id = company_id;
             modifiable_material.company_name = company_name;
@@ -55,46 +67,52 @@ namespace eosio {
             modifiable_material.material_name = material_name;
             // FIXME 单位小数点精度错误
             modifiable_material.unit_price = unit_price;
+            modifiable_material.safe_inventory = safe_inventory;
         });
 
         eosio::print("modify material success \n");
     }
 
     // @abi action
-    void dataexchange::delmaterial(uint64_t gid) {
-        require_auth(_self);
-        material_table tbl(_self, _self); // code, scope
-        const auto &record = tbl.get(gid);
-        print("delmaterial. \t gid : ", gid);
+    void dataexchange::delmaterial(account_name publisher, uint64_t gid) {
+        require_auth(publisher);
+        eosio_assert(is_account(publisher), "publisher account does not exist");
+
+        print("delmaterial. gid : ", gid);
+        material_table tbl(_self, publisher); // code, scope
+        auto exist_material = tbl.find(gid);
+
+        eosio_assert(exist_material != tbl.end(), "the material does not exist");
+        eosio_assert(exist_material->publisher == publisher, "the material doesn't belong to you!");
+
+        tbl.erase(exist_material);
     }
 
     // @abi action
-    void dataexchange::delmaterials() {
-        require_auth(_self);
-        material_table tbl(_self, _self); // code, scope
+    void dataexchange::delmaterials(account_name publisher) {
+        require_auth(publisher);
+        eosio_assert(is_account(publisher), "publisher account does not exist");
+
+        material_table tbl(_self, publisher); // code, scope
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             itr = tbl.erase(itr);
         }
         print("delmaterials deletetable.");
     }
 
-    inline double dataexchange::get_by_material_id(string &material_id) const {
-        // inline bool dataexchange::exist_by_material_id(string &material_id) const {
-        material_table tbl(_self, _self); // code, scope
-        auto itr = tbl.find(stoi(material_id));
-        eosio_assert(itr != tbl.end(), "material_ids doesn't exist");
-        print("detail = ", itr->gid, "|", itr->company_id, "|", itr->material_id, "|", itr->unit_price);
-        return itr->unit_price;
-        //bool exist = false;
-        //for (auto item = tbl.begin(); item != tbl.end(); item++) {
-        //    print("material: gid=", item->gid, ", material_id=", item->material_id, "\n");
-        //    if (item->material_id == material_id) {
-        //        // return *item;
-        //        exist = true;
-        //        break;
-        //    }
-        //}
-        //return exist;
+    dataexchange::material dataexchange::get_material(account_name publisher, string &material_id) const {
+        material_table
+        tbl(_self, publisher); // code, scope
+        auto exist_material = tbl.end();
+        for (auto itr = tbl.begin(); itr != tbl.end();) {
+            if (itr->material_id == material_id) {
+                exist_material = itr;
+                break;
+            }
+            itr++;
+        }
+        eosio_assert(exist_material != tbl.end(), "the material does not exist");
+        return *exist_material;
     }
 
     // @abi action
@@ -103,7 +121,7 @@ namespace eosio {
                                  vector <string> &material_ids,
                                  uint64_t start_time,
                                  uint64_t end_time) {
-        print("material_ids = ", material_ids.size());
+        print("material_ids size = ", material_ids.size(), "\n");
 
         eosio_assert(subscriber != publisher, "cannot subscribe to self");
         require_auth(subscriber);
@@ -111,14 +129,16 @@ namespace eosio {
         eosio_assert(is_account(subscriber), "subscriber account does not exist");
         eosio_assert(is_account(publisher), "publisher account does not exist");
 
-        auto contract = dataexchange(_self);
         double pay_amount = 0;
         for (int i = 0; i < material_ids.size(); i++) {
-            const double unit_price = contract.get_by_material_id(material_ids[i]);
-            print("material_id = ", material_ids[i], "unit_price = ", unit_price);
+            auto material = dataexchange::get_material(publisher, material_ids[i]);
+            int days_interval = utils::getDateInterval(start_time, end_time);
+            pay_amount += material.unit_price * days_interval;
+            print("material_id=", material_ids[i], ", unit_price=", material.unit_price, ", days_interval=", days_interval, "\n");
         }
-        // print("is material exist : ", exist, "\n");
-        // eosio_assert(exist != 0, "material_ids doesn't exist");
+        // FIXME
+        pay_amount = floor(pay_amount * 10000);
+        print("pay_amount = ", pay_amount, "\n");
 
         require_recipient(subscriber);
         require_recipient(publisher);
@@ -135,11 +155,10 @@ namespace eosio {
         });
 
         action(
-                permission_level{publisher, N(active)},
+                permission_level{subscriber, N(active)},
                 N(eosio.token),
                 N(transfer),
-                std::make_tuple(publisher, subscriber, asset(10000),
-                                std::string("transfer 1.0000 SYS from publisher to subscriber"))
+                std::make_tuple(subscriber, publisher, asset(pay_amount), std::string("subscribe fee"))
         ).send();
 
         print("subscription subscribed >>", " subscriber: ", name{subscriber},
@@ -149,28 +168,23 @@ namespace eosio {
 
     // @abi action
     void dataexchange::delsub(uint64_t gid) {
-        // eosio_assert(is_account(account), "account does not exist");
+        print("Subscription deletebygid. \t gid : ", gid);
+        require_auth(_self);
 
         subscription_table tbl(_self, _self); // code, scope
         const auto &record = tbl.get(gid);
-
-        require_auth(record.publisher);
         tbl.erase(record);
-        // print("Subscription deletebygid. \tscope : ",name{account}, "\t gid : ", gid);
-        print("Subscription deletebygid. \t gid : ", gid);
     }
 
     // @abi action
     void dataexchange::delsubs() {
+        print("Subscription deletetable.");
         require_auth(_self);
-        // eosio_assert(is_account(account), "account does not exist");
 
         subscription_table tbl(_self, _self); // code, scope
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             itr = tbl.erase(itr);
         }
-        // print("Subscription deletetable. \tscope : ",name{account});
-        print("Subscription deletetable.");
     }
 }
 

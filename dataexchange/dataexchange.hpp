@@ -8,28 +8,52 @@ namespace eosio {
 
     class dataexchange : public contract {
     public:
+        // @abi table material i64
+        struct material {
+            uint64_t gid;              // ID(multi_index生成)
+            account_name publisher;    // 信息发布者
+            std::string industry;      // 行业
+            uint64_t company_id;       // 公司ID
+            std::string company_name;  // 公司名
+            std::string material_id;   // 原料ID
+            std::string material_name; // 原料名
+            double unit_price;         // 单价
+            uint64_t safe_inventory;   // 安全库存
+
+            uint64_t primary_key() const { return gid; }
+
+            uint64_t get_by_publisher() const { return publisher; }
+
+            EOSLIB_SERIALIZE(material,
+            (gid)(publisher)(industry)(company_id)(company_name)(material_id)(material_name)(unit_price)(safe_inventory)
+            )
+        };
+
         dataexchange(account_name self) : contract(self) {}
 
-        void addmaterial(std::string &industry,
+        void addmaterial(account_name publisher,
+                         std::string &industry,
                          uint64_t company_id,
                          std::string &company_name,
                          std::string &material_id,
                          std::string &material_name,
-                         double unit_price);
+                         double unit_price,
+                         uint64_t safe_inventory);
 
-        void modmaterial(std::string &industry,
+        void modmaterial(account_name publisher,
+                         std::string &industry,
                          uint64_t company_id,
                          std::string &company_name,
                          std::string &material_id,
                          std::string &material_name,
-                         double unit_price);
+                         double unit_price,
+                         uint64_t safe_inventory);
 
-        void delmaterial(uint64_t gid);
+        void delmaterial(account_name publisher, uint64_t gid);
 
-        void delmaterials();
+        void delmaterials(account_name publisher);
 
-        inline double get_by_material_id(string &material_id) const;
-        // inline bool exist_by_material_id(string &material_id) const;
+        material get_material(account_name publisher, string &material_id) const;
 
         bool exist_by_material_ids(vector <string> &material_ids);
 
@@ -43,27 +67,7 @@ namespace eosio {
 
         void delsubs();
 
-        // private:
-        // @abi table material i64
-        struct material {
-            uint64_t gid;              // ID(multi_index生成)
-            std::string industry;      // 行业
-            uint64_t company_id;       // 公司ID
-            std::string company_name;  // 公司名
-            std::string material_id;   // 原料ID
-            std::string material_name; // 原料名
-            double unit_price;         // 单价
-
-            uint64_t primary_key() const { return gid; }
-
-            uint64_t get_by_company_id() const { return company_id; }
-
-            uint64_t get_by_material_id() const { return stoi(material_id); }
-
-            EOSLIB_SERIALIZE(material,
-            (gid)(industry)(company_id)(company_name)(material_id)(material_name)(unit_price)
-            )
-        };
+    private:
 
         // @abi table subscription i64
         struct subscription {
@@ -86,9 +90,10 @@ namespace eosio {
             )
         };
 
-        typedef multi_index<N(material), material,
-                // indexed_by < N(company_id), const_mem_fun < material, uint64_t, &material::get_by_company_id>>,
-                indexed_by < N(material_id), const_mem_fun < material, uint64_t, &material::get_by_material_id>>>
+        typedef multi_index<
+                N(material),
+                material,
+                indexed_by < N(publisher), const_mem_fun < material, uint64_t, &material::get_by_publisher>>>
         material_table;
 
         typedef multi_index<
@@ -98,5 +103,4 @@ namespace eosio {
         indexed_by<N(end_time), const_mem_fun < subscription, uint64_t, &subscription::get_by_end_time>>>
         subscription_table;
     };
-
 }
