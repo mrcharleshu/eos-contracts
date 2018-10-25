@@ -1,3 +1,5 @@
+## 原料的数据上传、数据交易、数据订阅交易
+
 ### 生成contract文件
 ```
 eosiocpp -g dataexchange.abi dataexchange.cpp;eosiocpp -o dataexchange.wast dataexchange.cpp

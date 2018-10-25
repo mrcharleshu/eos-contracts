@@ -37,9 +37,13 @@ namespace eosio {
                         account_name publisher,
                         vector <string> &material_ids);
 
-        void agreebid(account_name publisher,
-                      account_name bidder,
-                      vector <string> &material_ids);
+        void delbidding(account_name publisher, uint64_t gid);
+
+        void addagreement(account_name publisher,
+                          account_name bidder,
+                          vector <string> &material_ids);
+
+        void delagreement(account_name publisher, uint64_t gid);
 
     private:
         // 中标协议

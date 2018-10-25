@@ -58,10 +58,19 @@ namespace eosio {
     //    return *exist_bidding;
     //}
 
+    void materialbids::delbidding(account_name publisher, uint64_t gid) {
+        eosio_assert(is_account(publisher), "publisher account does not exist");
+        bidding_table tbl(_self, publisher); // code, scope
+        auto exist_bidding = tbl.find(gid);
+        eosio_assert(exist_bidding != tbl.end(), "the bidding does not exist");
+        require_auth(exist_bidding->bidder);
+        tbl.erase(exist_bidding);
+    }
+
     // @abi action
-    void materialbids::agreebid(account_name publisher,
-                                account_name bidder,
-                                vector <string> &material_ids) {
+    void materialbids::addagreement(account_name publisher,
+                                    account_name bidder,
+                                    vector <string> &material_ids) {
         require_auth(publisher);
         eosio_assert(is_account(publisher), "publisher account does not exist");
         eosio_assert(is_account(bidder), "bidder account does not exist");
@@ -79,6 +88,14 @@ namespace eosio {
               " bidder: ", bidder, " material_ids: ", sizeof(material_ids), "\n");
     }
 
+    void materialbids::delagreement(account_name publisher, uint64_t gid) {
+        require_auth(publisher);
+        eosio_assert(is_account(publisher), "publisher account does not exist");
+        agreement_table tbl(_self, publisher); // code, scope
+        auto exist_agreement = tbl.find(gid);
+        eosio_assert(exist_agreement != tbl.end(), "the agreement does not exist");
+        tbl.erase(exist_agreement);
+    }
 }
 
-EOSIO_ABI(eosio::materialbids, (addbidding)(agreebid))
+EOSIO_ABI(eosio::materialbids, (addbidding)(delbidding)(addagreement)(delagreement))

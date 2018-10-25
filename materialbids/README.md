@@ -1,3 +1,5 @@
+## 原料竞标与中标
+
 ### 生成contract文件
 ```
 eosiocpp -g materialbids.abi materialbids.cpp;eosiocpp -o materialbids.wast materialbids.cpp
@@ -9,7 +11,9 @@ cleos system newaccount producer111a materialbids EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 
 cleos set contract materialbids ../materialbids/ -p materialbids@active
 cleos push action materialbids addbidding '["useraaaaaaaa", "Google Company", "{unit_price: 0.2312, grade: A}", "useraaaaaaac", ["5886-glue-consumption"]]' -p useraaaaaaaa@active
-cleos push action materialbids agreebid '["useraaaaaaac", "useraaaaaaac", ["5886-glue-consumption"]]' -p useraaaaaaac@active
+cleos push action materialbids delbidding '["useraaaaaaac", 0]' -p useraaaaaaaa@active
+cleos push action materialbids addagreement '["useraaaaaaac", "useraaaaaaac", ["5886-glue-consumption"]]' -p useraaaaaaac@active
+cleos push action materialbids delagreement '["useraaaaaaac", 0]' -p useraaaaaaac@active
 cleos get table materialbids useraaaaaaac bidding
 cleos get table materialbids useraaaaaaac agreement
 ```
