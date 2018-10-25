@@ -1,4 +1,5 @@
 #include <cmath>
+#include <eosio.token/eosio.token.hpp>
 #include "dataexchange.hpp"
 #include "utils.hpp"
 
@@ -30,10 +31,10 @@ namespace eosio {
             new_material.safe_inventory = safe_inventory;
         });
 
-        print("materials create>> ", " industry: ", industry,
+        print("material create >> ", " industry: ", industry,
               " company_id: ", company_id, " company_name: ", company_name,
               " material_id: ", material_id, " material_name: ", material_name,
-              " unit_price: ", unit_price);
+              " unit_price: ", unit_price, "\n");
     }
 
     void dataexchange::modmaterial(account_name publisher,
@@ -101,8 +102,7 @@ namespace eosio {
     }
 
     dataexchange::material dataexchange::get_material(account_name publisher, string &material_id) const {
-        material_table
-        tbl(_self, publisher); // code, scope
+        material_table tbl(_self, publisher); // code, scope
         auto exist_material = tbl.end();
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             if (itr->material_id == material_id) {

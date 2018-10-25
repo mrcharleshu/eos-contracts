@@ -1,13 +1,13 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/print.hpp>
 #include <eosiolib/asset.hpp>
-#include <eosio.token/eosio.token.hpp>
 
 namespace eosio {
     using std::string;
 
     class dataexchange : public contract {
     public:
+        // 原料信息
         // @abi table material i64
         struct material {
             uint64_t gid;              // ID(multi_index生成)
@@ -21,8 +21,6 @@ namespace eosio {
             uint64_t safe_inventory;   // 安全库存
 
             uint64_t primary_key() const { return gid; }
-
-            uint64_t get_by_publisher() const { return publisher; }
 
             EOSLIB_SERIALIZE(material,
             (gid)(publisher)(industry)(company_id)(company_name)(material_id)(material_name)(unit_price)(safe_inventory)
@@ -68,7 +66,7 @@ namespace eosio {
         void delsubs();
 
     private:
-
+        // 订阅信息
         // @abi table subscription i64
         struct subscription {
             uint64_t gid;                   // 订阅ID(multi_index生成)
@@ -90,17 +88,8 @@ namespace eosio {
             )
         };
 
-        typedef multi_index<
-                N(material),
-                material,
-                indexed_by < N(publisher), const_mem_fun < material, uint64_t, &material::get_by_publisher>>>
-        material_table;
+        typedef multi_index<N(material), material> material_table;
 
-        typedef multi_index<
-                N(subscription),
-                subscription,
-                indexed_by < N(start_time), const_mem_fun < subscription, uint64_t, &subscription::get_by_start_time>>,
-        indexed_by<N(end_time), const_mem_fun < subscription, uint64_t, &subscription::get_by_end_time>>>
-        subscription_table;
+        typedef multi_index<N(subscription), subscription> subscription_table;
     };
 }
