@@ -7,6 +7,18 @@ namespace eosio {
 
     class dataexchange : public contract {
     public:
+        // 工厂信息登记
+        // @abi table company i64
+        struct company {
+            uint64_t id;          // 公司ID
+            std::string name;     // 公司名
+            account_name manager; // 负责人
+
+            uint64_t primary_key() const { return id; }
+
+            EOSLIB_SERIALIZE(company, (id)(name)(manager))
+        };
+
         // 原料信息
         // @abi table material i64
         struct material {
@@ -28,6 +40,12 @@ namespace eosio {
         };
 
         dataexchange(account_name self) : contract(self) {}
+
+        void addcompany(uint64_t company_id,
+                        std::string &company_name,
+                        account_name manager);
+
+        inline company get_company(uint64_t company_id) const;
 
         void addmaterial(account_name publisher,
                          std::string &industry,
@@ -87,6 +105,8 @@ namespace eosio {
             (gid)(ctime)(subscriber)(publisher)(material_ids)(start_time)(end_time)
             )
         };
+
+        typedef multi_index<N(company), company> company_table;
 
         typedef multi_index<N(material), material> material_table;
 

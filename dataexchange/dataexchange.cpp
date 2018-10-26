@@ -6,6 +6,30 @@
 namespace eosio {
 
     // @abi action
+    void dataexchange::addcompany(uint64_t company_id,
+                                  std::string &company_name,
+                                  account_name manager) {
+        require_auth(manager);
+        eosio_assert(is_account(manager), "manager account does not exist");
+
+        company_table tbl(_self, _self); // code, scope
+        tbl.emplace(manager, [&](auto &new_company) {
+            new_company.id = company_id;
+            new_company.name = company_name;
+            new_company.manager = manager;
+        });
+        print("company create >> ", " company_id: ", company_id, " company_name: ", company_name,
+              " manager: ", manager, "\n");
+    }
+
+    //inline dataexchange::company dataexchange::get_company(uint64_t company_id) const {
+    //    company_table tbl(_self, _self); // code, scope
+    //    auto itr = tbl.find(company_id);
+    //    eosio_assert(itr != tbl.end(), "the company does not exist");
+    //    return *itr;
+    //}
+
+    // @abi action
     void dataexchange::addmaterial(account_name publisher,
                                    std::string &industry,
                                    uint64_t company_id,
@@ -134,7 +158,8 @@ namespace eosio {
             auto material = dataexchange::get_material(publisher, material_ids[i]);
             int days_interval = utils::getDateInterval(start_time, end_time);
             pay_amount += material.unit_price * days_interval;
-            print("material_id=", material_ids[i], ", unit_price=", material.unit_price, ", days_interval=", days_interval, "\n");
+            print("material_id=", material_ids[i], ", unit_price=", material.unit_price,
+                  ", days_interval=", days_interval, "\n");
         }
         // FIXME
         pay_amount = floor(pay_amount * 10000);
@@ -188,4 +213,4 @@ namespace eosio {
     }
 }
 
-EOSIO_ABI(eosio::dataexchange, (addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))
+EOSIO_ABI(eosio::dataexchange, (addcompany)(addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))

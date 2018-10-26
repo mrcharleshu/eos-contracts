@@ -10,6 +10,7 @@ cleos system newaccount producer111a dataexchange EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 # cleos system delegatebw producer111a dataexchange "10.0000 SYS" "10.0000 SYS"
 
 cleos set contract dataexchange ../dataexchange/ -p dataexchange@active
+cleos push action dataexchange addcompany '[3, "新泽兴", "useraaaaaaac"]' -p useraaaaaaac@active
 cleos push action dataexchange addmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-glue-consumption", "胶耗", 1.0012, 1000]' -p useraaaaaaac@active
 cleos push action dataexchange addmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-emulsion", "乳胶", 1.3123, 1000]' -p useraaaaaaac@active
 cleos push action dataexchange modmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-glue-consumption", "胶耗", 0.2342, 900]' -p useraaaaaaac@active
@@ -18,6 +19,7 @@ cleos push action dataexchange delmaterials '["useraaaaaaac"]' -p useraaaaaaac@a
 cleos push action dataexchange subscribe '["useraaaaaaab", "useraaaaaaac", ["5886-glue-consumption", "5886-emulsion"], 1540362608, 1551363608]' -p useraaaaaaab@active
 cleos push action dataexchange delsub '[1]' -p useraaaaaaab@active
 cleos push action dataexchange delsubs '' -p dataexchange@active
+cleos get table dataexchange dataexchange company
 cleos get table dataexchange useraaaaaaac material
 cleos get table dataexchange dataexchange subscription
 ```
