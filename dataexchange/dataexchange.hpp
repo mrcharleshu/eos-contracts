@@ -47,6 +47,8 @@ namespace eosio {
 
         inline company get_company(uint64_t company_id) const;
 
+        inline bool is_company_exist(uint64_t company_id) const;
+
         void addmaterial(account_name publisher,
                          std::string &industry,
                          uint64_t company_id,

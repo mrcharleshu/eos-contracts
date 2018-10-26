@@ -29,6 +29,11 @@ namespace eosio {
     //    return *itr;
     //}
 
+    inline bool dataexchange::is_company_exist(uint64_t company_id) const {
+        company_table tbl(_self, _self); // code, scope
+        return tbl.find(company_id) != tbl.end();
+    }
+
     // @abi action
     void dataexchange::addmaterial(account_name publisher,
                                    std::string &industry,
@@ -40,6 +45,13 @@ namespace eosio {
                                    uint64_t safe_inventory) {
         require_auth(publisher);
         eosio_assert(is_account(publisher), "publisher account does not exist");
+
+        // check and save company if necessary
+        const bool is_company_exist = dataexchange::is_company_exist(company_id);
+        if (!is_company_exist) {
+            print("company[", company_id, "] doesn't exist, we now create it.\n");
+            dataexchange::addcompany(company_id, company_name, publisher);
+        }
 
         material_table tbl(_self, publisher); // code, scope
         tbl.emplace(publisher, [&](auto &new_material) {
