@@ -22,16 +22,14 @@ namespace eosio {
               " manager: ", manager, "\n");
     }
 
-    inline dataexchange::company dataexchange::get_company(uint64_t company_id) {
+    // @abi action
+    void dataexchange::delcompany(uint64_t company_id) {
+        print("delcompany: ", company_id);
         company_table tbl(_self, _self); // code, scope
-        auto itr = tbl.find(company_id);
-        eosio_assert(itr != tbl.end(), "the company does not exist");
-        return *itr;
-    }
-
-    inline bool dataexchange::is_company_exist(uint64_t company_id) const {
-        company_table tbl(_self, _self); // code, scope
-        return tbl.find(company_id) != tbl.end();
+        auto exist_company = tbl.find(company_id);
+        eosio_assert(exist_company != tbl.end(), "the company does not exist");
+        require_auth(exist_company->manager);
+        tbl.erase(exist_company);
     }
 
     // @abi action
@@ -63,7 +61,7 @@ namespace eosio {
             new_material.material_id = material_id;
             new_material.material_name = material_name;
             // FIXME 单位小数点精度错误
-            new_material.unit_price = unit_price;
+            new_material.unit_price = asset(unit_price * TEN_THOUSAND);
             new_material.safe_inventory = safe_inventory;
         });
 
@@ -103,7 +101,7 @@ namespace eosio {
             modifiable_material.material_id = material_id;
             modifiable_material.material_name = material_name;
             // FIXME 单位小数点精度错误
-            modifiable_material.unit_price = unit_price;
+            modifiable_material.unit_price = asset(unit_price * TEN_THOUSAND);
             modifiable_material.safe_inventory = safe_inventory;
         });
 
@@ -137,20 +135,6 @@ namespace eosio {
         print("delmaterials deletetable.");
     }
 
-    dataexchange::material dataexchange::get_material(account_name publisher, string &material_id) const {
-        material_table tbl(_self, publisher); // code, scope
-        auto exist_material = tbl.end();
-        for (auto itr = tbl.begin(); itr != tbl.end();) {
-            if (itr->material_id == material_id) {
-                exist_material = itr;
-                break;
-            }
-            itr++;
-        }
-        eosio_assert(exist_material != tbl.end(), "the material does not exist");
-        return *exist_material;
-    }
-
     // @abi action
     void dataexchange::subscribe(account_name subscriber,
                                  account_name publisher,
@@ -169,12 +153,10 @@ namespace eosio {
         for (int i = 0; i < material_ids.size(); i++) {
             auto material = dataexchange::get_material(publisher, material_ids[i]);
             int days_interval = utils::getDateInterval(start_time, end_time);
-            pay_amount += material.unit_price * days_interval;
-            print("material_id=", material_ids[i], ", unit_price=", material.unit_price,
+            pay_amount += material.unit_price.amount * days_interval;
+            print("material_id=", material_ids[i], ", unit_price=", material.unit_price.amount,
                   ", days_interval=", days_interval, "\n");
         }
-        // FIXME
-        pay_amount = floor(pay_amount * 10000);
         print("pay_amount = ", pay_amount, "\n");
 
         require_recipient(subscriber);
@@ -183,7 +165,7 @@ namespace eosio {
         subscription_table tbl(_self, _self); // code, scope
         tbl.emplace(subscriber, [&](auto &new_subscription) {
             new_subscription.gid = tbl.available_primary_key();
-            new_subscription.ctime = current_time();
+            new_subscription.ctime = current_time() / THOUSAND;
             new_subscription.subscriber = subscriber;
             new_subscription.publisher = publisher;
             new_subscription.material_ids = material_ids;
@@ -225,5 +207,4 @@ namespace eosio {
     }
 }
 
-EOSIO_ABI(eosio::dataexchange, (addcompany)(addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)
-(delsubs))
+EOSIO_ABI(eosio::dataexchange, (addcompany)(delcompany)(addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))

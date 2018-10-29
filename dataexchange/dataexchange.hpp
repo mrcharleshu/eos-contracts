@@ -30,7 +30,7 @@ namespace eosio {
             std::string company_name;  // 公司名
             std::string material_id;   // 原料ID
             std::string material_name; // 原料名
-            double unit_price;         // 单价
+            asset unit_price;          // 单价
             uint64_t safe_inventory;   // 安全库存
 
             uint64_t primary_key() const { return gid; }
@@ -45,6 +45,8 @@ namespace eosio {
         void addcompany(uint64_t company_id,
                         std::string &company_name,
                         account_name manager);
+
+        void delcompany(uint64_t company_id);
 
         inline company get_company(uint64_t company_id);
 
@@ -72,7 +74,9 @@ namespace eosio {
 
         void delmaterials(account_name publisher);
 
-        material get_material(account_name publisher, string &material_id) const;
+        material get_material(const account_name publisher, const string &material_id) const;
+
+        inline bool is_material_exist(const account_name publisher, const string &material_id) const;
 
         bool exist_by_material_ids(vector <string> &material_ids);
 
@@ -87,6 +91,10 @@ namespace eosio {
         void delsubs();
 
     private:
+
+        const uint64_t THOUSAND = 1000;
+        const uint64_t TEN_THOUSAND = 10000;
+
         // 订阅信息
         // @abi table subscription i64
         struct subscription {
@@ -115,4 +123,42 @@ namespace eosio {
 
         typedef multi_index<N(subscription), subscription> subscription_table;
     };
+
+    inline dataexchange::company dataexchange::get_company(uint64_t company_id) {
+        company_table tbl(_self, _self); // code, scope
+        auto itr = tbl.find(company_id);
+        eosio_assert(itr != tbl.end(), "the company does not exist");
+        return *itr;
+    }
+
+    inline bool dataexchange::is_company_exist(uint64_t company_id) const {
+        company_table tbl(_self, _self); // code, scope
+        return tbl.find(company_id) != tbl.end();
+    }
+
+    dataexchange::material dataexchange::get_material(const account_name publisher,
+                                                      const string &material_id) const {
+        material_table tbl(_self, publisher); // code, scope
+        auto exist_material = tbl.end();
+        for (auto itr = tbl.begin(); itr != tbl.end();) {
+            if (itr->material_id == material_id) {
+                exist_material = itr;
+                break;
+            }
+            itr++;
+        }
+        eosio_assert(exist_material != tbl.end(), "the material does not exist");
+        return *exist_material;
+    }
+
+    bool dataexchange::is_material_exist(const account_name publisher, const string &material_id) const {
+        material_table tbl(_self, publisher); // code, scope
+        for (auto itr = tbl.begin(); itr != tbl.end();) {
+            if (itr->publisher == publisher && itr->material_id == material_id) {
+                return true;
+            }
+            itr++;
+        }
+        return false;
+    }
 }

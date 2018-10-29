@@ -1,8 +1,11 @@
+#include <cstring>
 #include <eosio.token/eosio.token.hpp>
-#include "../materialbids/materialbids.hpp"
+#include "materialbids.hpp"
 #include "../dataexchange/dataexchange.hpp"
 
 namespace eosio {
+
+    using namespace std;
 
     // @abi action
     void materialbids::addbidding(account_name bidder,
@@ -14,17 +17,18 @@ namespace eosio {
         eosio_assert(is_account(bidder), "bidder account does not exist");
         eosio_assert(is_account(publisher), "publisher account does not exist");
 
-        //auto de_contract = dataexchange(N(dataexchange));
-        //for (int i = 0; i < sizeof(material_ids); ++i) {
-        //    auto material = de_contract.get_material(publisher, material_ids[i]);
-        //    print("check material = ", &material);
-        //    eosio_assert(&material != nullptr, "material[" + material_ids[i] + "]does not exist");
-        //}
+        auto de_contract = dataexchange(N(dataexchange));
+        for (int i = 0; i < material_ids.size(); ++i) {
+            bool is_exist = de_contract.is_material_exist(publisher, material_ids[i]);
+            string msg = "publisher[";
+            msg += name{publisher}.to_string() + "] has not published material[" + material_ids[i] + "]";
+            eosio_assert(is_exist, msg.c_str());
+        }
 
         bidding_table tbl(_self, _self); // code, scope
         tbl.emplace(bidder, [&](auto &new_bidding) {
             new_bidding.gid = tbl.available_primary_key();
-            new_bidding.ctime = current_time();
+            new_bidding.ctime = current_time() / THOUSAND;
             new_bidding.bidder = bidder;
             new_bidding.company_name = company_name;
             new_bidding.material_desc = material_desc;
@@ -75,10 +79,20 @@ namespace eosio {
         eosio_assert(is_account(publisher), "publisher account does not exist");
         eosio_assert(is_account(bidder), "bidder account does not exist");
 
+        require_recipient(publisher);
+        require_recipient(bidder);
+
+        for (int i = 0; i < material_ids.size(); ++i) {
+            bool is_exist = materialbids::is_bidding_exist(bidder, material_ids[i]);
+            string msg = "bidder[";
+            msg += name{publisher}.to_string() + "] has not bid material[" + material_ids[i] + "]";
+            eosio_assert(is_exist, msg.c_str());
+        }
+
         agreement_table tbl(_self, _self); // code, scope
         tbl.emplace(publisher, [&](auto &new_agreement) {
             new_agreement.gid = tbl.available_primary_key();
-            new_agreement.ctime = current_time();
+            new_agreement.ctime = current_time() / THOUSAND;
             new_agreement.publisher = publisher;
             new_agreement.bidder = bidder;
             new_agreement.material_ids = material_ids;

@@ -39,6 +39,8 @@ namespace eosio {
 
         void delbidding(account_name publisher, uint64_t gid);
 
+        inline bool is_bidding_exist(account_name bidder, string material_ids) const;
+
         void addagreement(account_name publisher,
                           account_name bidder,
                           vector <string> &material_ids);
@@ -46,6 +48,8 @@ namespace eosio {
         void delagreement(account_name publisher, uint64_t gid);
 
     private:
+        const uint64_t THOUSAND = 1000;
+
         // 中标协议
         // @abi table agreement i64
         struct agreement {
@@ -65,4 +69,16 @@ namespace eosio {
         typedef multi_index<N(bidding), bidding> bidding_table;
         typedef multi_index<N(agreement), agreement> agreement_table;
     };
+
+    bool materialbids::is_bidding_exist(account_name bidder, string material_id) const {
+        bidding_table tbl(_self, _self); // code, scope
+        for (auto itr = tbl.begin(); itr != tbl.end();) {
+            vector<string> mids = itr->material_ids;
+            if (itr->bidder == bidder && std::find(mids.begin(), mids.end(), material_id) != mids.end()) {
+                return true;
+            }
+            itr++;
+        }
+        return false;
+    }
 }
