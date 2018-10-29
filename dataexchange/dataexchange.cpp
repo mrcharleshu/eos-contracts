@@ -22,12 +22,12 @@ namespace eosio {
               " manager: ", manager, "\n");
     }
 
-    //inline dataexchange::company dataexchange::get_company(uint64_t company_id) const {
-    //    company_table tbl(_self, _self); // code, scope
-    //    auto itr = tbl.find(company_id);
-    //    eosio_assert(itr != tbl.end(), "the company does not exist");
-    //    return *itr;
-    //}
+    inline dataexchange::company dataexchange::get_company(uint64_t company_id) {
+        company_table tbl(_self, _self); // code, scope
+        auto itr = tbl.find(company_id);
+        eosio_assert(itr != tbl.end(), "the company does not exist");
+        return *itr;
+    }
 
     inline bool dataexchange::is_company_exist(uint64_t company_id) const {
         company_table tbl(_self, _self); // code, scope
@@ -225,4 +225,5 @@ namespace eosio {
     }
 }
 
-EOSIO_ABI(eosio::dataexchange, (addcompany)(addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)(delsubs))
+EOSIO_ABI(eosio::dataexchange, (addcompany)(addmaterial)(modmaterial)(delmaterial)(delmaterials)(subscribe)(delsub)
+(delsubs))

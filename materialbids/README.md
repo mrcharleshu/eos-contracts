@@ -14,6 +14,6 @@ cleos push action materialbids addbidding '["useraaaaaaaa", "Google Company", "{
 cleos push action materialbids delbidding '["useraaaaaaac", 0]' -p useraaaaaaaa@active
 cleos push action materialbids addagreement '["useraaaaaaac", "useraaaaaaac", ["5886-glue-consumption"]]' -p useraaaaaaac@active
 cleos push action materialbids delagreement '["useraaaaaaac", 0]' -p useraaaaaaac@active
-cleos get table materialbids useraaaaaaac bidding
-cleos get table materialbids useraaaaaaac agreement
+cleos get table materialbids materialbids bidding
+cleos get table materialbids materialbids agreement
 ```

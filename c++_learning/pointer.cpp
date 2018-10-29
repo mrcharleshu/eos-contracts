@@ -28,5 +28,15 @@ int main() {
     cout << "after change2() n=" << n << endl;
     change3(&n);
     cout << "after change3() n=" << n << endl;
+    int i = 3;
+
+// A pointer to variable i (or stores
+// address of i)
+    int *ptr = &i;
+
+// A reference (or alias) for i.
+    int &ref = i;
+    int &ref = n;
+    cout << *ptr << endl << &ref << endl << ref;
     return 0;
 }

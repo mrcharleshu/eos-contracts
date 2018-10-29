@@ -16,7 +16,8 @@ namespace eosio {
 
             uint64_t primary_key() const { return id; }
 
-            EOSLIB_SERIALIZE(company, (id)(name)(manager))
+            EOSLIB_SERIALIZE(company, (id)(name)(manager)
+            )
         };
 
         // 原料信息
@@ -45,7 +46,7 @@ namespace eosio {
                         std::string &company_name,
                         account_name manager);
 
-        inline company get_company(uint64_t company_id) const;
+        inline company get_company(uint64_t company_id);
 
         inline bool is_company_exist(uint64_t company_id) const;
 
