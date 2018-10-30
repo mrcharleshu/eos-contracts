@@ -17,13 +17,7 @@ namespace eosio {
         eosio_assert(is_account(bidder), "bidder account does not exist");
         eosio_assert(is_account(publisher), "publisher account does not exist");
 
-        auto de_contract = dataexchange(N(dataexchange));
-        for (int i = 0; i < material_ids.size(); ++i) {
-            bool is_exist = de_contract.is_material_exist(publisher, material_ids[i]);
-            string msg = "publisher[";
-            msg += name{publisher}.to_string() + "] has not published material[" + material_ids[i] + "]";
-            eosio_assert(is_exist, msg.c_str());
-        }
+        dataexchange(N(dataexchange)).check_materials_valid(publisher, material_ids);
 
         bidding_table tbl(_self, _self); // code, scope
         tbl.emplace(bidder, [&](auto &new_bidding) {
@@ -40,27 +34,6 @@ namespace eosio {
               " company_name: ", company_name, " material_desc: ", material_desc,
               " publisher: ", publisher, " material_ids: ", sizeof(material_ids), "\n");
     }
-
-    //materialbids::bidding materialbids::get_bidding(account_name publisher,
-    //                                                account_name bidder,
-    //                                                string &material_id) {
-    //    bidding_table tbl(_self, publisher); // code, scope
-    //    auto exist_bidding = tbl.end();
-    //    for (auto itr = tbl.begin(); itr != tbl.end();) {
-    //        if (itr->bidder == bidder) {
-    //            vector <string> material_ids = itr->material_ids;
-    //            for (int i = 0; i < sizeof(material_ids); ++i) {
-    //                if (material_ids[i] == material_id) {
-    //                    exist_bidding = itr;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //        itr++;
-    //    }
-    //    eosio_assert(exist_bidding != tbl.end(), "the bidding does not exist");
-    //    return *exist_bidding;
-    //}
 
     void materialbids::delbidding(account_name publisher, uint64_t gid) {
         eosio_assert(is_account(publisher), "publisher account does not exist");
@@ -82,12 +55,10 @@ namespace eosio {
         require_recipient(publisher);
         require_recipient(bidder);
 
-        for (int i = 0; i < material_ids.size(); ++i) {
-            bool is_exist = materialbids::is_bidding_exist(bidder, material_ids[i]);
-            string msg = "bidder[";
-            msg += name{publisher}.to_string() + "] has not bid material[" + material_ids[i] + "]";
-            eosio_assert(is_exist, msg.c_str());
-        }
+        // is bidder bidded ?
+        materialbids::check_materials_valid(bidder, material_ids);
+        // is publisher published ?
+        dataexchange(N(dataexchange)).check_materials_valid(publisher, material_ids);
 
         agreement_table tbl(_self, _self); // code, scope
         tbl.emplace(publisher, [&](auto &new_agreement) {

@@ -39,7 +39,10 @@ namespace eosio {
 
         void delbidding(account_name publisher, uint64_t gid);
 
-        inline bool is_bidding_exist(account_name bidder, string material_ids) const;
+        // FIXME return reference is better
+        inline vector <string> get_bidding_materials(const account_name bidder) const;
+
+        inline void check_materials_valid(const account_name publisher, const vector <string> &material_id) const;
 
         void addagreement(account_name publisher,
                           account_name bidder,
@@ -70,15 +73,28 @@ namespace eosio {
         typedef multi_index<N(agreement), agreement> agreement_table;
     };
 
-    bool materialbids::is_bidding_exist(account_name bidder, string material_id) const {
+    vector <string> materialbids::get_bidding_materials(const account_name bidder) const {
         bidding_table tbl(_self, _self); // code, scope
+        vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
-            vector<string> mids = itr->material_ids;
-            if (itr->bidder == bidder && std::find(mids.begin(), mids.end(), material_id) != mids.end()) {
-                return true;
+            if (itr->bidder == bidder) {
+                vector <string> each_m_ids = itr->material_ids;
+                print("account ", name{bidder}, " has bidding material_ids size : ", each_m_ids.size(), "\n");
+                material_ids.insert(material_ids.end(), each_m_ids.begin(), each_m_ids.end());
             }
             itr++;
         }
-        return false;
+        return material_ids;
+    }
+
+    void materialbids::check_materials_valid(const account_name bidder,
+                                             const vector <string> &m_ids) const {
+        vector <string> material_ids = materialbids::get_bidding_materials(bidder);
+        for (int i = 0; i < material_ids.size(); ++i) {
+            bool is_exist = std::find(m_ids.begin(), m_ids.end(), material_ids[i]) != m_ids.end();
+            string msg = "bidder[";
+            msg += name{bidder}.to_string() + "] has not bidded material[" + material_ids[i] + "]";
+            eosio_assert(is_exist, msg.c_str());
+        }
     }
 }

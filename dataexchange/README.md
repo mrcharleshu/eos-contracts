@@ -11,6 +11,7 @@ cleos system newaccount producer111a dataexchange EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 
 cleos set contract dataexchange ../dataexchange/ -p dataexchange@active
 cleos push action dataexchange addcompany '[3, "新泽兴", "useraaaaaaac"]' -p useraaaaaaac@active
+cleos push action dataexchange delcompany '[3]' -p useraaaaaaac@active
 cleos push action dataexchange addmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-glue-consumption", "胶耗", 1.0012, 1000]' -p useraaaaaaac@active
 cleos push action dataexchange addmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-emulsion", "乳胶", 1.3123, 1000]' -p useraaaaaaac@active
 cleos push action dataexchange modmaterial '["useraaaaaaac", "人造板", 3, "新泽兴", "5886-glue-consumption", "胶耗", 0.2342, 900]' -p useraaaaaaac@active

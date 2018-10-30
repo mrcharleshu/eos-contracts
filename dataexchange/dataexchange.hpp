@@ -42,9 +42,7 @@ namespace eosio {
 
         dataexchange(account_name self) : contract(self) {}
 
-        void addcompany(uint64_t company_id,
-                        std::string &company_name,
-                        account_name manager);
+        void addcompany(uint64_t company_id, std::string &company_name, account_name manager);
 
         void delcompany(uint64_t company_id);
 
@@ -74,9 +72,12 @@ namespace eosio {
 
         void delmaterials(account_name publisher);
 
-        material get_material(const account_name publisher, const string &material_id) const;
+        inline material get_material(const account_name publisher, const string &material_id) const;
 
-        inline bool is_material_exist(const account_name publisher, const string &material_id) const;
+        // FIXME return reference is better
+        inline vector <string> get_published_materials(const account_name publisher) const;
+
+        inline void check_materials_valid(const account_name publisher, const vector <string> &material_id) const;
 
         bool exist_by_material_ids(vector <string> &material_ids);
 
@@ -151,14 +152,25 @@ namespace eosio {
         return *exist_material;
     }
 
-    bool dataexchange::is_material_exist(const account_name publisher, const string &material_id) const {
+    vector <string> dataexchange::get_published_materials(const account_name publisher) const {
         material_table tbl(_self, publisher); // code, scope
+        vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
-            if (itr->publisher == publisher && itr->material_id == material_id) {
-                return true;
-            }
+            print("publisher ", name{publisher}, " has published material_id : ", itr->material_id, "\n");
+            material_ids.push_back(itr->material_id);
             itr++;
         }
-        return false;
+        return material_ids;
+    }
+
+    void dataexchange::check_materials_valid(const account_name publisher,
+                                             const vector <string> &material_ids) const {
+        vector <string> pids = dataexchange::get_published_materials(publisher);
+        for (int i = 0; i < material_ids.size(); ++i) {
+            bool is_exist = std::find(pids.begin(), pids.end(), material_ids[i]) != pids.end();
+            string msg = "publisher[";
+            msg += name{publisher}.to_string() + "] has not published material[" + material_ids[i] + "]";
+            eosio_assert(is_exist, msg.c_str());
+        }
     }
 }
