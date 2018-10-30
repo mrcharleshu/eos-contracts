@@ -77,7 +77,7 @@ namespace eosio {
         // FIXME return reference is better
         inline vector <string> get_published_materials(const account_name publisher) const;
 
-        inline void check_materials_valid(const account_name publisher, const vector <string> &material_id) const;
+        inline void check_materials_valid(const account_name publisher, const vector <string> &material_ids) const;
 
         bool exist_by_material_ids(vector <string> &material_ids);
 

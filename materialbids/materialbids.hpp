@@ -42,7 +42,7 @@ namespace eosio {
         // FIXME return reference is better
         inline vector <string> get_bidding_materials(const account_name bidder) const;
 
-        inline void check_materials_valid(const account_name publisher, const vector <string> &material_id) const;
+        inline void check_materials_valid(const account_name publisher, const vector <string> &material_ids) const;
 
         void addagreement(account_name publisher,
                           account_name bidder,
@@ -88,8 +88,8 @@ namespace eosio {
     }
 
     void materialbids::check_materials_valid(const account_name bidder,
-                                             const vector <string> &m_ids) const {
-        vector <string> material_ids = materialbids::get_bidding_materials(bidder);
+                                             const vector <string> &material_ids) const {
+        vector <string> m_ids = materialbids::get_bidding_materials(bidder);
         for (int i = 0; i < material_ids.size(); ++i) {
             bool is_exist = std::find(m_ids.begin(), m_ids.end(), material_ids[i]) != m_ids.end();
             string msg = "bidder[";
