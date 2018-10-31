@@ -94,11 +94,11 @@ namespace eosio {
         typedef multi_index<N(delivery), delivery> delivery_table;
     };
 
-    bool materialbids::contains(vector <string> &material_ids, string &material_id) const {
+    inline bool materialbids::contains(vector <string> &material_ids, string &material_id) const {
         return std::find(material_ids.begin(), material_ids.end(), material_id) != material_ids.end();
     }
 
-    vector <string> materialbids::get_bidding_materials(account_name bidder) const {
+    inline vector <string> materialbids::get_bidding_materials(account_name bidder) const {
         bidding_table tbl(_self, _self); // code, scope
         vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
@@ -113,7 +113,7 @@ namespace eosio {
         return material_ids;
     }
 
-    vector <string> materialbids::get_agreement_materials(account_name publisher) const {
+    inline vector <string> materialbids::get_agreement_materials(account_name publisher) const {
         agreement_table tbl(_self, _self); // code, scope
         vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
@@ -128,7 +128,7 @@ namespace eosio {
         return material_ids;
     }
 
-    void materialbids::should_materials_bidded(account_name bidder, vector <string> &material_ids) const {
+    inline void materialbids::should_materials_bidded(account_name bidder, vector <string> &material_ids) const {
         vector <string> m_ids = materialbids::get_bidding_materials(bidder);
         for (int i = 0; i < material_ids.size(); ++i) {
             string msg = "bidder[";
@@ -137,7 +137,7 @@ namespace eosio {
         }
     }
 
-    void materialbids::should_be_first_biding(account_name bidder, vector <string> &material_ids) const {
+    inline void materialbids::should_be_first_biding(account_name bidder, vector <string> &material_ids) const {
         vector <string> m_ids = materialbids::get_bidding_materials(bidder);
         for (int i = 0; i < material_ids.size(); ++i) {
             string msg = "You have already bidded material[";
@@ -146,8 +146,7 @@ namespace eosio {
         }
     }
 
-    void materialbids::should_be_first_agreement(account_name publisher,
-                                                 vector <string> &material_ids) const {
+    inline void materialbids::should_be_first_agreement(account_name publisher, vector <string> &material_ids) const {
         vector <string> m_ids = materialbids::get_agreement_materials(publisher);
         for (int i = 0; i < material_ids.size(); ++i) {
             string msg = "You have already came to an agreement on material[";

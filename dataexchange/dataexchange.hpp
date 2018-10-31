@@ -7,19 +7,6 @@ namespace eosio {
 
     class dataexchange : public contract {
     public:
-        // 工厂信息登记
-        // @abi table company i64
-        struct company {
-            uint64_t id;          // 公司ID
-            std::string name;     // 公司名
-            account_name manager; // 负责人
-
-            uint64_t primary_key() const { return id; }
-
-            EOSLIB_SERIALIZE(company, (id)(name)(manager)
-            )
-        };
-
         // 原料信息
         // @abi table material i64
         struct material {
@@ -46,7 +33,7 @@ namespace eosio {
 
         void delcompany(uint64_t company_id);
 
-        inline company get_company(uint64_t company_id);
+        // inline company get_company(uint64_t company_id) const;
 
         inline bool is_company_exist(uint64_t company_id) const;
 
@@ -92,9 +79,21 @@ namespace eosio {
         void delsubs();
 
     private:
-
         const uint64_t THOUSAND = 1000;
         const uint64_t TEN_THOUSAND = 10000;
+
+        // 工厂信息登记
+        // @abi table company i64
+        struct company {
+            uint64_t id;          // 公司ID
+            std::string name;     // 公司名
+            account_name manager; // 负责人
+
+            uint64_t primary_key() const { return id; }
+
+            EOSLIB_SERIALIZE(company, (id)(name)(manager)
+            )
+        };
 
         // 订阅信息
         // @abi table subscription i64
@@ -125,20 +124,19 @@ namespace eosio {
         typedef multi_index<N(subscription), subscription> subscription_table;
     };
 
-    inline dataexchange::company dataexchange::get_company(uint64_t company_id) {
-        company_table tbl(_self, _self); // code, scope
-        auto itr = tbl.find(company_id);
-        eosio_assert(itr != tbl.end(), "the company does not exist");
-        return *itr;
-    }
+    //inline dataexchange::company dataexchange::get_company(uint64_t company_id) const {
+    //    company_table tbl(_self, _self); // code, scope
+    //    auto itr = tbl.find(company_id);
+    //    eosio_assert(itr != tbl.end(), "the company does not exist");
+    //    return *itr;
+    //}
 
     inline bool dataexchange::is_company_exist(uint64_t company_id) const {
         company_table tbl(_self, _self); // code, scope
         return tbl.find(company_id) != tbl.end();
     }
 
-    dataexchange::material dataexchange::get_material(account_name publisher,
-                                                      string &material_id) const {
+    inline dataexchange::material dataexchange::get_material(account_name publisher, string &material_id) const {
         material_table tbl(_self, publisher); // code, scope
         auto exist_material = tbl.end();
         for (auto itr = tbl.begin(); itr != tbl.end();) {
@@ -152,7 +150,7 @@ namespace eosio {
         return *exist_material;
     }
 
-    vector <string> dataexchange::get_published_materials(account_name publisher) const {
+    inline vector <string> dataexchange::get_published_materials(account_name publisher) const {
         material_table tbl(_self, publisher); // code, scope
         vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
@@ -163,8 +161,8 @@ namespace eosio {
         return material_ids;
     }
 
-    void dataexchange::should_materials_published(account_name publisher,
-                                                  vector <string> &material_ids) const {
+    inline void dataexchange::should_materials_published(account_name publisher,
+                                                         vector <string> &material_ids) const {
         vector <string> pids = dataexchange::get_published_materials(publisher);
         for (int i = 0; i < material_ids.size(); ++i) {
             bool is_exist = std::find(pids.begin(), pids.end(), material_ids[i]) != pids.end();
