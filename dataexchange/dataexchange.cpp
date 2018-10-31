@@ -13,8 +13,8 @@ namespace eosio {
         eosio_assert(is_account(manager), "manager account does not exist");
 
         company_table tbl(_self, _self); // code, scope
-        auto exist_company = tbl.find(company_id);
-        eosio_assert(exist_company == tbl.end(), "the company already exist");
+        auto exist_entry = tbl.find(company_id);
+        eosio_assert(exist_entry == tbl.end(), "the company already exist");
 
         tbl.emplace(manager, [&](auto &new_company) {
             new_company.id = company_id;
@@ -29,10 +29,10 @@ namespace eosio {
     void dataexchange::delcompany(uint64_t company_id) {
         print("delcompany: ", company_id);
         company_table tbl(_self, _self); // code, scope
-        auto exist_company = tbl.find(company_id);
-        eosio_assert(exist_company != tbl.end(), "the company does not exist");
-        require_auth(exist_company->manager);
-        tbl.erase(exist_company);
+        auto exist_entry = tbl.find(company_id);
+        eosio_assert(exist_entry != tbl.end(), "the company does not exist");
+        require_auth(exist_entry->manager);
+        tbl.erase(exist_entry);
     }
 
     // @abi action
@@ -94,17 +94,17 @@ namespace eosio {
 
         material_table tbl(_self, publisher); // code, scope
         // check if material really exist
-        auto exist_material = tbl.end();
+        auto exist_entry = tbl.end();
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             if (itr->company_id == company_id && itr->material_id == material_id) {
-                exist_material = itr;
+                exist_entry = itr;
                 break;
             }
             itr++;
         }
-        eosio_assert(exist_material != tbl.end(), "the material does not exist");
+        eosio_assert(exist_entry != tbl.end(), "the material does not exist");
         // now modify material
-        tbl.modify(exist_material, publisher, [&](auto &modifiable_material) {
+        tbl.modify(exist_entry, publisher, [&](auto &modifiable_material) {
             modifiable_material.industry = industry;
             modifiable_material.company_id = company_id;
             modifiable_material.company_name = company_name;
@@ -125,12 +125,12 @@ namespace eosio {
 
         print("delmaterial. gid : ", gid);
         material_table tbl(_self, publisher); // code, scope
-        auto exist_material = tbl.find(gid);
+        auto exist_entry = tbl.find(gid);
 
-        eosio_assert(exist_material != tbl.end(), "the material does not exist");
-        eosio_assert(exist_material->publisher == publisher, "the material doesn't belong to you!");
+        eosio_assert(exist_entry != tbl.end(), "the material does not exist");
+        eosio_assert(exist_entry->publisher == publisher, "the material doesn't belong to you!");
 
-        tbl.erase(exist_material);
+        tbl.erase(exist_entry);
     }
 
     // @abi action

@@ -37,13 +37,12 @@ namespace eosio {
               " publisher: ", publisher, " material_ids: ", sizeof(material_ids), "\n");
     }
 
-    void materialbids::delbidding(account_name publisher, uint64_t gid) {
-        eosio_assert(is_account(publisher), "publisher account does not exist");
+    void materialbids::delbidding(uint64_t gid) {
         bidding_table tbl(_self, _self); // code, scope
-        auto exist_bidding = tbl.find(gid);
-        eosio_assert(exist_bidding != tbl.end(), "the bidding does not exist");
-        require_auth(exist_bidding->bidder);
-        tbl.erase(exist_bidding);
+        auto exist_entry = tbl.find(gid);
+        eosio_assert(exist_entry != tbl.end(), "the bidding does not exist");
+        require_auth(exist_entry->bidder);
+        tbl.erase(exist_entry);
     }
 
     // @abi action
@@ -57,10 +56,12 @@ namespace eosio {
         require_recipient(publisher);
         require_recipient(bidder);
 
-        // is bidder bidded ?
+        // check if bidder has already bidded ?
         materialbids::should_materials_bidded(bidder, material_ids);
-        // is publisher published ?
+        // check is publisher has already published ?
         dataexchange(N(dataexchange)).should_materials_published(publisher, material_ids);
+        // check if agreement repeatedly ?
+        materialbids::should_be_first_agreement(publisher, bidder, material_ids);
 
         agreement_table tbl(_self, _self); // code, scope
         tbl.emplace(publisher, [&](auto &new_agreement) {
@@ -75,14 +76,21 @@ namespace eosio {
               " bidder: ", bidder, " material_ids: ", sizeof(material_ids), "\n");
     }
 
-    void materialbids::delagreement(account_name publisher, uint64_t gid) {
-        require_auth(publisher);
-        eosio_assert(is_account(publisher), "publisher account does not exist");
+    void materialbids::delagreement(uint64_t gid) {
         agreement_table tbl(_self, _self); // code, scope
-        auto exist_agreement = tbl.find(gid);
-        eosio_assert(exist_agreement != tbl.end(), "the agreement does not exist");
-        tbl.erase(exist_agreement);
+        auto exist_entry = tbl.find(gid);
+        eosio_assert(exist_entry != tbl.end(), "the agreement does not exist");
+        require_auth(exist_entry->publisher);
+        tbl.erase(exist_entry);
     }
+
+    void materialbids::startdeliver(uint64_t agreement_id, string &material_id) {
+        agreement_table tbl(_self, _self); // code, scope
+        auto exist_agreement = tbl.find(agreement_id);
+        eosio_assert(exist_agreement != tbl.end(), "the agreement does not exist");
+    }
+
+    void deliverover(uint64_t agreement_id, string &material_id);
 }
 
 EOSIO_ABI(eosio::materialbids, (addbidding)(delbidding)(addagreement)(delagreement))
