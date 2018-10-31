@@ -25,6 +25,9 @@ namespace eosio {
             )
         };
 
+        inline bool contains(vector <string> &material_ids, string &material_id) const;
+
+
         materialbids(account_name self) : contract(self) {}
 
         bidding get_bidding(account_name publisher,
@@ -40,9 +43,11 @@ namespace eosio {
         void delbidding(account_name publisher, uint64_t gid);
 
         // FIXME return reference is better
-        inline vector <string> get_bidding_materials(const account_name bidder) const;
+        inline vector <string> get_bidding_materials(account_name bidder) const;
 
-        inline void check_materials_valid(const account_name publisher, const vector <string> &material_ids) const;
+        inline void should_materials_bidded(account_name bidder, vector <string> &material_ids) const;
+
+        inline void should_be_first_biding(account_name bidder, vector <string> &material_ids) const;
 
         void addagreement(account_name publisher,
                           account_name bidder,
@@ -73,7 +78,11 @@ namespace eosio {
         typedef multi_index<N(agreement), agreement> agreement_table;
     };
 
-    vector <string> materialbids::get_bidding_materials(const account_name bidder) const {
+    bool materialbids::contains(vector <string> &material_ids, string &material_id) const {
+        return std::find(material_ids.begin(), material_ids.end(), material_id) != material_ids.end();
+    }
+
+    vector <string> materialbids::get_bidding_materials(account_name bidder) const {
         bidding_table tbl(_self, _self); // code, scope
         vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
@@ -84,17 +93,27 @@ namespace eosio {
             }
             itr++;
         }
+        print("account ", name{bidder}, " has bidding material_ids size : ", material_ids.size(), "\n");
         return material_ids;
     }
 
-    void materialbids::check_materials_valid(const account_name bidder,
-                                             const vector <string> &material_ids) const {
+    void materialbids::should_materials_bidded(account_name bidder,
+                                               vector <string> &material_ids) const {
         vector <string> m_ids = materialbids::get_bidding_materials(bidder);
         for (int i = 0; i < material_ids.size(); ++i) {
-            bool is_exist = std::find(m_ids.begin(), m_ids.end(), material_ids[i]) != m_ids.end();
             string msg = "bidder[";
             msg += name{bidder}.to_string() + "] has not bidded material[" + material_ids[i] + "]";
-            eosio_assert(is_exist, msg.c_str());
+            eosio_assert(materialbids::contains(m_ids, material_ids[i]), msg.c_str());
+        }
+    }
+
+    inline void materialbids::should_be_first_biding(account_name bidder,
+                                                     vector <string> &material_ids) const {
+        vector <string> m_ids = materialbids::get_bidding_materials(bidder);
+        for (int i = 0; i < material_ids.size(); ++i) {
+            string msg = "You have already bidded material[";
+            msg += material_ids[i] + "]";
+            eosio_assert(!materialbids::contains(m_ids, material_ids[i]), msg.c_str());
         }
     }
 }

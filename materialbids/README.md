@@ -10,7 +10,7 @@ cleos system newaccount producer111a materialbids EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 # cleos system delegatebw producer111a materialbids "10.0000 SYS" "10.0000 SYS"
 
 cleos set contract materialbids ../materialbids/ -p materialbids@active
-cleos push action materialbids addbidding '["useraaaaaaaa", "Google Company", "{unit_price: 0.2312, grade: A}", "useraaaaaaac", ["5886-glue-consumption"]]' -p useraaaaaaaa@active
+cleos push action materialbids addbidding '["useraaaaaaaa", "CompanyXYZ", "{unit_price: 0.2312, grade: A}", "useraaaaaaac", ["5886-glue-consumption"]]' -p useraaaaaaaa@active
 cleos push action materialbids delbidding '["useraaaaaaac", 0]' -p useraaaaaaaa@active
 cleos push action materialbids addagreement '["useraaaaaaac", "useraaaaaaaa", ["5886-glue-consumption"]]' -p useraaaaaaac@active
 cleos push action materialbids delagreement '["useraaaaaaac", 0]' -p useraaaaaaac@active

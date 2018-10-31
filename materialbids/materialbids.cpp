@@ -1,4 +1,3 @@
-#include <cstring>
 #include <eosio.token/eosio.token.hpp>
 #include "materialbids.hpp"
 #include "../dataexchange/dataexchange.hpp"
@@ -17,7 +16,10 @@ namespace eosio {
         eosio_assert(is_account(bidder), "bidder account does not exist");
         eosio_assert(is_account(publisher), "publisher account does not exist");
 
-        dataexchange(N(dataexchange)).check_materials_valid(publisher, material_ids);
+        // is publisher published ?
+        dataexchange(N(dataexchange)).should_materials_published(publisher, material_ids);
+        // check if bidding repeatedly ?
+        materialbids::should_be_first_biding(bidder, material_ids);
 
         bidding_table tbl(_self, _self); // code, scope
         tbl.emplace(bidder, [&](auto &new_bidding) {
@@ -56,9 +58,9 @@ namespace eosio {
         require_recipient(bidder);
 
         // is bidder bidded ?
-        materialbids::check_materials_valid(bidder, material_ids);
+        materialbids::should_materials_bidded(bidder, material_ids);
         // is publisher published ?
-        dataexchange(N(dataexchange)).check_materials_valid(publisher, material_ids);
+        dataexchange(N(dataexchange)).should_materials_published(publisher, material_ids);
 
         agreement_table tbl(_self, _self); // code, scope
         tbl.emplace(publisher, [&](auto &new_agreement) {

@@ -1,14 +1,12 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/print.hpp>
 
-class students : public eosio::contract
-{
-  public:
+class students : public eosio::contract {
+public:
     using eosio::contract::contract;
 
     // @abi table studenttable i64
-    struct student
-    {
+    struct student {
         uint64_t number;        // 学号
         std::string name;       // 姓名
         uint64_t age;           // 年龄
@@ -17,26 +15,28 @@ class students : public eosio::contract
         std::string major;      // 所在专业
 
         uint64_t primary_key() const { return number; }
+
         uint64_t get_by_age() const { return age; }
+
         uint64_t get_by_time() const { return time; }
 
-        EOSLIB_SERIALIZE(student, (number)(name)(age)(gender)(time)(major))
+        EOSLIB_SERIALIZE(student, (number)(name)(age)(gender)(time)(major)
+        )
     };
 
     typedef eosio::multi_index<
-        N(studenttable),
-        student,
-        eosio::indexed_by<N(age), eosio::const_mem_fun<student, uint64_t, &student::get_by_age>>,
-        eosio::indexed_by<N(time), eosio::const_mem_fun<student, uint64_t, &student::get_by_time>>
+            N(studenttable),
+            student,
+            eosio::indexed_by < N(age), eosio::const_mem_fun < student, uint64_t, &student::get_by_age>>,
+            eosio::indexed_by<N(time), eosio::const_mem_fun < student, uint64_t, &student::get_by_time>>
     > student_table;
 
     void create(uint64_t number,
-                std::string& name,
+                std::string &name,
                 uint64_t age,
-                std::string& gender,
+                std::string &gender,
                 uint64_t time,
-                std::string& major)
-    {
+                std::string &major) {
         student_table stutbl(_self, _self);
         stutbl.emplace(_self, [&](auto &new_student) {
             new_student.number = number;
@@ -56,8 +56,7 @@ class students : public eosio::contract
                      "- major: ", major);
     }
 
-    void update(uint64_t number, std::string& new_major)
-    {
+    void update(uint64_t number, std::string &new_major) {
         student_table stutbl(_self, _self);
         auto student_lookup = stutbl.find(number);
         eosio_assert(student_lookup != stutbl.end(), "the item does not exist");
@@ -66,23 +65,20 @@ class students : public eosio::contract
             modifiable_student.major = new_major;
         });
 
-        eosio::print("UPDATE student \n",
-                     "- number: ", number, "\n",
-                     "- major: ", new_major);
+        eosio::print("UPDATE student \n", "- number: ", number, "\n", "- major: ", new_major);
     }
 
-    void remove(uint64_t number)
-    {
+    void remove(uint64_t number) {
         student_table stutbl(_self, _self);
         auto student_lookup = stutbl.find(number);
         stutbl.erase(student_lookup);
 
-        eosio::print("REMOVE student \n",
-                     "- number: ", number);
+        eosio::print("REMOVE student \n", "- number: ", number);
     }
 
     void listbynumber() {
-        student_table stutbl(_self, _self);
+        student_table
+        stutbl(_self, _self);
 
         eosio::print("LIST student by NUMBER index (begin -> end)\n");
         for (auto item = stutbl.begin(); item != stutbl.end(); item++) {
@@ -90,8 +86,7 @@ class students : public eosio::contract
         }
     }
 
-    void listbyage()
-    {
+    void listbyage() {
         student_table stutbl(_self, _self);
 
         auto idx = stutbl.get_index<N(age)>();
@@ -101,8 +96,7 @@ class students : public eosio::contract
         }
     }
 
-    void listbytime()
-    {
+    void listbytime() {
         student_table stutbl(_self, _self);
 
         auto idx = stutbl.get_index<N(time)>();
@@ -112,11 +106,10 @@ class students : public eosio::contract
         }
     }
 
-    void listbyget(uint64_t number)
-    {
+    void listbyget(uint64_t number) {
         student_table stutbl(_self, _self);
 
-        const auto& student = stutbl.get(number);
+        const auto &student = stutbl.get(number);
         eosio::print("LIST student by GET\n",
                      "- number: ", student.number, "\n",
                      "- name: ", student.name, "\n");
@@ -132,8 +125,7 @@ class students : public eosio::contract
 
     }
 
-    void listbyfind(uint64_t number)
-    {
+    void listbyfind(uint64_t number) {
         student_table stutbl(_self, _self);
 
         auto itr = stutbl.find(number);
@@ -146,8 +138,7 @@ class students : public eosio::contract
         }
     }
 
-    void listbybound(uint64_t number)
-    {
+    void listbybound(uint64_t number) {
         student_table stutbl(_self, _self);
 
         auto itr = stutbl.lower_bound(number);

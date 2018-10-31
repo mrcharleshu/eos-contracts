@@ -13,13 +13,16 @@ namespace eosio {
         eosio_assert(is_account(manager), "manager account does not exist");
 
         company_table tbl(_self, _self); // code, scope
+        auto exist_company = tbl.find(company_id);
+        eosio_assert(exist_company == tbl.end(), "the company already exist");
+
         tbl.emplace(manager, [&](auto &new_company) {
             new_company.id = company_id;
             new_company.name = company_name;
             new_company.manager = manager;
         });
-        print("company create >> ", " company_id: ", company_id, " company_name: ", company_name,
-              " manager: ", manager, "\n");
+        print("company create >> ", " company_id: ", company_id,
+              " company_name: ", company_name, " manager: ", manager, "\n");
     }
 
     // @abi action
@@ -52,6 +55,13 @@ namespace eosio {
         }
 
         material_table tbl(_self, publisher); // code, scope
+        // material_id should be new
+        for (auto itr = tbl.begin(); itr != tbl.end();) {
+            bool is_exist = itr->company_id == company_id && itr->material_id == material_id;
+            eosio_assert(!is_exist, "the material already exist in the company.");
+            itr++;
+        }
+
         tbl.emplace(publisher, [&](auto &new_material) {
             new_material.gid = tbl.available_primary_key();
             new_material.publisher = publisher;
@@ -83,9 +93,9 @@ namespace eosio {
         eosio_assert(is_account(publisher), "publisher account does not exist");
 
         material_table tbl(_self, publisher); // code, scope
+        // check if material really exist
         auto exist_material = tbl.end();
         for (auto itr = tbl.begin(); itr != tbl.end();) {
-            print("material: gid=", itr->gid, ",industry=", itr->industry, ", material_id=", itr->material_id, "\n");
             if (itr->company_id == company_id && itr->material_id == material_id) {
                 exist_material = itr;
                 break;
@@ -93,7 +103,7 @@ namespace eosio {
             itr++;
         }
         eosio_assert(exist_material != tbl.end(), "the material does not exist");
-
+        // now modify material
         tbl.modify(exist_material, publisher, [&](auto &modifiable_material) {
             modifiable_material.industry = industry;
             modifiable_material.company_id = company_id;
