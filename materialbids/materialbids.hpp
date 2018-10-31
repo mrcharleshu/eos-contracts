@@ -7,6 +7,40 @@ namespace eosio {
 
     class materialbids : public contract {
     public:
+        inline bool contains(vector <string> &material_ids, string &material_id) const;
+
+        // FIXME return reference is better
+        inline vector <string> get_bidding_materials(account_name bidder) const;
+
+        inline vector <string> get_agreement_materials(account_name publisher) const;
+
+        inline void should_materials_bidded(account_name bidder, vector <string> &material_ids) const;
+
+        inline void should_be_first_biding(account_name bidder, vector <string> &material_ids) const;
+
+        inline void should_be_first_agreement(account_name publisher, vector <string> &material_ids) const;
+
+        materialbids(account_name self) : contract(self) {}
+
+        void addbidding(account_name bidder,
+                        std::string &company_name,
+                        std::string &material_desc,
+                        account_name publisher,
+                        vector <string> &material_ids);
+
+        void delbidding(uint64_t gid);
+
+        void addagreement(account_name publisher, account_name bidder, vector <string> &material_ids);
+
+        void delagreement(uint64_t gid);
+
+        void deliverstart(uint64_t agreement_id, string &material_id);
+
+        void deliverover(uint64_t agreement_id, string &material_id);
+
+    private:
+        const uint64_t THOUSAND = 1000;
+
         // 竞标信息
         // @abi table bidding i64
         struct bidding {
@@ -24,47 +58,6 @@ namespace eosio {
             (gid)(ctime)(bidder)(company_name)(material_desc)(publisher)(material_ids)
             )
         };
-
-        inline bool contains(vector <string> &material_ids, string &material_id) const;
-
-        // FIXME return reference is better
-        inline vector <string> get_bidding_materials(account_name bidder) const;
-
-        inline vector <string> get_agreement_materials(account_name publisher) const;
-
-        inline void should_materials_bidded(account_name bidder, vector <string> &material_ids) const;
-
-        inline void should_be_first_biding(account_name bidder, vector <string> &material_ids) const;
-
-        inline void should_be_first_agreement(account_name publisher, vector <string> &material_ids) const;
-
-        materialbids(account_name self) : contract(self) {}
-
-        bidding get_bidding(account_name publisher,
-                            account_name bidder,
-                            string &material_id);
-
-        void addbidding(account_name bidder,
-                        std::string &company_name,
-                        std::string &material_desc,
-                        account_name publisher,
-                        vector <string> &material_ids);
-
-        void delbidding(uint64_t gid);
-
-
-        void addagreement(account_name publisher,
-                          account_name bidder,
-                          vector <string> &material_ids);
-
-        void delagreement(uint64_t gid);
-
-        void deliverstart(uint64_t agreement_id, string &material_id);
-
-        void deliverover(uint64_t agreement_id, string &material_id);
-
-    private:
-        const uint64_t THOUSAND = 1000;
 
         // 中标协议
         // @abi table agreement i64
