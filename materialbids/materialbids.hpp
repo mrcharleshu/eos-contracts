@@ -104,7 +104,6 @@ namespace eosio {
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             if (itr->bidder == bidder) {
                 vector <string> each_m_ids = itr->material_ids;
-                print("bidder[", name{bidder}, "] has bidding material_ids size : ", each_m_ids.size(), "\n");
                 material_ids.insert(material_ids.end(), each_m_ids.begin(), each_m_ids.end());
             }
             itr++;
@@ -119,7 +118,6 @@ namespace eosio {
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             if (itr->publisher == publisher) {
                 vector <string> each_m_ids = itr->material_ids;
-                print("publisher[", name{publisher}, "] has agreed material_ids size : ", each_m_ids.size(), "\n");
                 material_ids.insert(material_ids.end(), each_m_ids.begin(), each_m_ids.end());
             }
             itr++;
@@ -132,7 +130,7 @@ namespace eosio {
         vector <string> m_ids = materialbids::get_bidding_materials(bidder);
         for (int i = 0; i < material_ids.size(); ++i) {
             string msg = "bidder[";
-            msg += name{bidder}.to_string() + "] has not bidded material[" + material_ids[i] + "]";
+            msg += name{bidder}.to_string() + "] hasn't bidded material[" + material_ids[i] + "]";
             eosio_assert(materialbids::contains(m_ids, material_ids[i]), msg.c_str());
         }
     }
@@ -140,8 +138,7 @@ namespace eosio {
     inline void materialbids::should_be_first_biding(account_name bidder, vector <string> &material_ids) const {
         vector <string> m_ids = materialbids::get_bidding_materials(bidder);
         for (int i = 0; i < material_ids.size(); ++i) {
-            string msg = "You have already bidded material[";
-            msg += material_ids[i] + "]";
+            string msg = string("You have already bidded material[") + material_ids[i] + "]";
             eosio_assert(!materialbids::contains(m_ids, material_ids[i]), msg.c_str());
         }
     }
@@ -149,8 +146,7 @@ namespace eosio {
     inline void materialbids::should_be_first_agreement(account_name publisher, vector <string> &material_ids) const {
         vector <string> m_ids = materialbids::get_agreement_materials(publisher);
         for (int i = 0; i < material_ids.size(); ++i) {
-            string msg = "You have already came to an agreement on material[";
-            msg += material_ids[i] + "]";
+            string msg = string("You have already came to an agreement on material[") + material_ids[i] + "]";
             eosio_assert(!materialbids::contains(m_ids, material_ids[i]), msg.c_str());
         }
     }

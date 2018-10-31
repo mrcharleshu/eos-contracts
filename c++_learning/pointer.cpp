@@ -30,13 +30,15 @@ int main() {
     cout << "after change3() n=" << n << endl;
     int i = 3;
 
-// A pointer to variable i (or stores
-// address of i)
+    // A pointer to variable i (or stores address of i)
     int *ptr = &i;
-
-// A reference (or alias) for i.
+    // A reference (or alias) for i.
     int &ref = i;
-    int &ref = n;
-    cout << *ptr << endl << &ref << endl << ref;
+    // int &ref = n;
+    cout << *ptr << endl << &ref << endl << ref << endl;
+
+    // string operator overloading
+    string str = "Charles";
+    cout << string("hello") + "world" << " - " << str.append("'s name") << endl;
     return 0;
 }
