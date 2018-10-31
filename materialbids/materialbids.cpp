@@ -61,7 +61,7 @@ namespace eosio {
         // check is publisher has already published ?
         dataexchange(N(dataexchange)).should_materials_published(publisher, material_ids);
         // check if agreement repeatedly ?
-        materialbids::should_be_first_agreement(publisher, bidder, material_ids);
+        materialbids::should_be_first_agreement(publisher, material_ids);
 
         agreement_table tbl(_self, _self); // code, scope
         tbl.emplace(publisher, [&](auto &new_agreement) {
@@ -76,6 +76,7 @@ namespace eosio {
               " bidder: ", bidder, " material_ids: ", sizeof(material_ids), "\n");
     }
 
+    // @abi action
     void materialbids::delagreement(uint64_t gid) {
         agreement_table tbl(_self, _self); // code, scope
         auto exist_entry = tbl.find(gid);
@@ -84,13 +85,42 @@ namespace eosio {
         tbl.erase(exist_entry);
     }
 
-    void materialbids::startdeliver(uint64_t agreement_id, string &material_id) {
-        agreement_table tbl(_self, _self); // code, scope
-        auto exist_agreement = tbl.find(agreement_id);
-        eosio_assert(exist_agreement != tbl.end(), "the agreement does not exist");
+    // @abi action
+    void materialbids::deliverstart(uint64_t agreement_id, string &material_id) {
+        agreement_table agreement_tbl(_self, _self); // code, scope
+        auto agreement_entry = agreement_tbl.find(agreement_id);
+        eosio_assert(agreement_entry != agreement_tbl.end(), "the agreement does not exist");
+        require_auth(agreement_entry->publisher);
+
+        vector <string> agreement_m_ids = agreement_entry->material_ids;
+        eosio_assert(materialbids::contains(agreement_m_ids, material_id),
+                     "the agreement doesn't contain this kind of material");
+
+        delivery_table tbl(_self, _self); // code, scope
+        auto exist_entry = tbl.find(agreement_id);
+        eosio_assert(exist_entry == tbl.end() || material_id != exist_entry->material_id,
+                     "the delivery already exist");
+
+        tbl.emplace(agreement_entry->publisher, [&](auto &new_delivery) {
+            new_delivery.agreement_id = agreement_entry->gid;
+            new_delivery.ctime = current_time() / THOUSAND;
+            new_delivery.publisher = agreement_entry->publisher;
+            new_delivery.bidder = agreement_entry->bidder;
+            new_delivery.material_id = material_id;
+        });
     }
 
-    void deliverover(uint64_t agreement_id, string &material_id);
+    // @abi action
+    void materialbids::deliverover(uint64_t agreement_id, string &material_id) {
+        delivery_table tbl(_self, _self); // code, scope
+        auto exist_entry = tbl.find(agreement_id);
+        eosio_assert(exist_entry != tbl.end(), "the delivery does not exist");
+        require_auth(exist_entry->publisher);
+
+        eosio_assert(exist_entry->material_id == material_id,
+                     "the delivery doesn't contain this kind of material");
+        tbl.erase(exist_entry);
+    }
 }
 
-EOSIO_ABI(eosio::materialbids, (addbidding)(delbidding)(addagreement)(delagreement))
+EOSIO_ABI(eosio::materialbids, (addbidding)(delbidding)(addagreement)(delagreement)(deliverstart)(deliverover))

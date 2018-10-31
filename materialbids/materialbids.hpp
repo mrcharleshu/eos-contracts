@@ -30,15 +30,13 @@ namespace eosio {
         // FIXME return reference is better
         inline vector <string> get_bidding_materials(account_name bidder) const;
 
-        inline vector <string> get_agreement_materials(account_name publisher, account_name bidder) const;
+        inline vector <string> get_agreement_materials(account_name publisher) const;
 
         inline void should_materials_bidded(account_name bidder, vector <string> &material_ids) const;
 
         inline void should_be_first_biding(account_name bidder, vector <string> &material_ids) const;
 
-        inline void should_be_first_agreement(account_name publisher,
-                                              account_name bidder,
-                                              vector <string> &material_ids) const;
+        inline void should_be_first_agreement(account_name publisher, vector <string> &material_ids) const;
 
         materialbids(account_name self) : contract(self) {}
 
@@ -61,7 +59,7 @@ namespace eosio {
 
         void delagreement(uint64_t gid);
 
-        void startdeliver(uint64_t agreement_id, string &material_id);
+        void deliverstart(uint64_t agreement_id, string &material_id);
 
         void deliverover(uint64_t agreement_id, string &material_id);
 
@@ -84,7 +82,7 @@ namespace eosio {
         };
 
         // 原材料送货
-        // @abi table agreement i64
+        // @abi table delivery i64
         struct delivery {
             uint64_t agreement_id;          // 中标合同ID
             uint64_t ctime;                 // 送货通知开始时间
@@ -113,29 +111,27 @@ namespace eosio {
         for (auto itr = tbl.begin(); itr != tbl.end();) {
             if (itr->bidder == bidder) {
                 vector <string> each_m_ids = itr->material_ids;
-                print("account ", name{bidder}, " has bidding material_ids size : ", each_m_ids.size(), "\n");
+                print("bidder[", name{bidder}, "] has bidding material_ids size : ", each_m_ids.size(), "\n");
                 material_ids.insert(material_ids.end(), each_m_ids.begin(), each_m_ids.end());
             }
             itr++;
         }
-        print("account ", name{bidder}, " has bidding material_ids size : ", material_ids.size(), "\n");
+        print("bidder[", name{bidder}, "] has totally bidding material_ids size : ", material_ids.size(), "\n");
         return material_ids;
     }
 
-    vector <string> materialbids::get_agreement_materials(account_name publisher, account_name bidder) const {
+    vector <string> materialbids::get_agreement_materials(account_name publisher) const {
         agreement_table tbl(_self, _self); // code, scope
         vector <string> material_ids;
         for (auto itr = tbl.begin(); itr != tbl.end();) {
-            if (itr->bidder == bidder && itr->publisher == publisher) {
+            if (itr->publisher == publisher) {
                 vector <string> each_m_ids = itr->material_ids;
-                print("publisher[", name{publisher}, "]has agreed bidder[", name{bidder},
-                      "] material_ids size : ", each_m_ids.size(), "\n");
+                print("publisher[", name{publisher}, "] has agreed material_ids size : ", each_m_ids.size(), "\n");
                 material_ids.insert(material_ids.end(), each_m_ids.begin(), each_m_ids.end());
             }
             itr++;
         }
-        print("publisher[", name{publisher}, "]has agreed bidder[", name{bidder},
-              "] material_ids size : ", material_ids.size(), "\n");
+        print("publisher[", name{publisher}, "] has totally agreed material_ids size : ", material_ids.size(), "\n");
         return material_ids;
     }
 
@@ -158,12 +154,11 @@ namespace eosio {
     }
 
     void materialbids::should_be_first_agreement(account_name publisher,
-                                                 account_name bidder,
                                                  vector <string> &material_ids) const {
-        vector <string> m_ids = materialbids::get_agreement_materials(publisher, bidder);
+        vector <string> m_ids = materialbids::get_agreement_materials(publisher);
         for (int i = 0; i < material_ids.size(); ++i) {
-            string msg = "You have already agreed material[";
-            msg += material_ids[i] + "] to bidder[" + name{bidder}.to_string() + "]";
+            string msg = "You have already came to an agreement on material[";
+            msg += material_ids[i] + "]";
             eosio_assert(!materialbids::contains(m_ids, material_ids[i]), msg.c_str());
         }
     }
