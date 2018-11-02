@@ -17516,7 +17516,7 @@
     (i32.const 1584)
    )
    (set_local $10
-    (i64.load offset=16
+    (i64.load offset=24
      (i32.load
       (get_local $13)
      )

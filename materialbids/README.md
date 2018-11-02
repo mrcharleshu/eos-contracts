@@ -14,7 +14,7 @@ cleos push action materialbids addbidding '["useraaaaaaaa", "CompanyXYZ", "{unit
 cleos push action materialbids delbidding '[0]' -p useraaaaaaaa@active
 cleos push action materialbids addagreement '["useraaaaaaac", "useraaaaaaaa", ["5886-glue-consumption"]]' -p useraaaaaaac@active
 cleos push action materialbids delagreement '[0]' -p useraaaaaaac@active
-cleos push action materialbids deliverstart '[0, 5886-glue-consumption]' -p useraaaaaaac@active
+cleos push action materialbids deliverstart '[0, 5886-glue-consumption]' -p useraaaaaaaa@active
 cleos push action materialbids deliverover '[0, 5886-glue-consumption]' -p useraaaaaaac@active
 cleos get table materialbids materialbids bidding
 cleos get table materialbids materialbids agreement

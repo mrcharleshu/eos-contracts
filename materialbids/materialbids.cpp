@@ -101,7 +101,7 @@ namespace eosio {
         eosio_assert(exist_entry == tbl.end() || material_id != exist_entry->material_id,
                      "the delivery already exist");
 
-        tbl.emplace(agreement_entry->publisher, [&](auto &new_delivery) {
+        tbl.emplace(agreement_entry->bidder, [&](auto &new_delivery) {
             new_delivery.agreement_id = agreement_entry->gid;
             new_delivery.ctime = current_time() / THOUSAND;
             new_delivery.publisher = agreement_entry->publisher;
