@@ -90,7 +90,7 @@ namespace eosio {
         agreement_table agreement_tbl(_self, _self); // code, scope
         auto agreement_entry = agreement_tbl.find(agreement_id);
         eosio_assert(agreement_entry != agreement_tbl.end(), "the agreement does not exist");
-        require_auth(agreement_entry->publisher);
+        require_auth(agreement_entry->bidder);
 
         vector <string> agreement_m_ids = agreement_entry->material_ids;
         eosio_assert(materialbids::contains(agreement_m_ids, material_id),

@@ -16968,7 +16968,7 @@
    (i32.const 1488)
   )
   (call $require_auth
-   (i64.load offset=16
+   (i64.load offset=24
     (i32.load
      (get_local $13)
     )
