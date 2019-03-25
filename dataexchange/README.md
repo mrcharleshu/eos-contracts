@@ -12,9 +12,9 @@ cleos system newaccount producer111a dataexchange EOS8imf2TDq6FKtLZ8mvXPWcd6EF2r
 cleos set contract dataexchange ../dataexchange/ -p dataexchange@active
 cleos push action dataexchange addcompany '[3, "CompanyXYZ", "useraaaaaaac"]' -p useraaaaaaac@active
 cleos push action dataexchange delcompany '[3]' -p useraaaaaaac@active
-cleos push action dataexchange addmaterial '["useraaaaaaac", "人造板", 3, "CompanyXYZ", "5886-glue-consumption", "胶耗", 1.0012, 1000]' -p useraaaaaaac@active
-cleos push action dataexchange addmaterial '["useraaaaaaac", "人造板", 3, "CompanyXYZ", "5886-emulsion", "乳胶", 1.3123, 1000]' -p useraaaaaaac@active
-cleos push action dataexchange modmaterial '["useraaaaaaac", "人造板", 3, "CompanyXYZ", "5886-glue-consumption", "胶耗", 0.2342, 900]' -p useraaaaaaac@active
+cleos push action dataexchange addmaterial '["useraaaaaaac", "Industry", 3, "CompanyXYZ", "5886-glue-consumption", "JiaoHao", 1.0012, 1000]' -p useraaaaaaac@active
+cleos push action dataexchange addmaterial '["useraaaaaaac", "Industry", 3, "CompanyXYZ", "5886-emulsion", "RuJiao", 1.3123, 1000]' -p useraaaaaaac@active
+cleos push action dataexchange modmaterial '["useraaaaaaac", "Industry", 3, "CompanyXYZ", "5886-glue-consumption", "JiaoHao", 0.2342, 900]' -p useraaaaaaac@active
 cleos push action dataexchange delmaterial '["useraaaaaaac", 1]' -p useraaaaaaac@active
 cleos push action dataexchange delmaterials '["useraaaaaaac"]' -p useraaaaaaac@active
 cleos push action dataexchange subscribe '["useraaaaaaab", "useraaaaaaac", ["5886-glue-consumption", "5886-emulsion"], 1540362608, 1551363608]' -p useraaaaaaab@active
